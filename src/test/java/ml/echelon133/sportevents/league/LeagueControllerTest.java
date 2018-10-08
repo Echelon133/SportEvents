@@ -3,18 +3,23 @@ package ml.echelon133.sportevents.league;
 import com.jayway.jsonpath.Configuration;
 import com.jayway.jsonpath.DocumentContext;
 import com.jayway.jsonpath.JsonPath;
+import ml.echelon133.sportevents.exception.APIExceptionHandler;
+import ml.echelon133.sportevents.exception.ResourceDoesNotExistException;
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.MockitoJUnitRunner;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.json.JsonContentAssert;
+import org.springframework.context.ApplicationContext;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.mock.web.MockHttpServletResponse;
 import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.test.web.servlet.setup.MockMvcBuilders;
+import org.springframework.web.servlet.mvc.method.annotation.ResponseEntityExceptionHandler;
 
 import java.util.Arrays;
 import java.util.Collections;
@@ -39,9 +44,12 @@ public class LeagueControllerTest {
     @InjectMocks
     private LeagueController leagueController;
 
+    @InjectMocks
+    private APIExceptionHandler exceptionHandler;
+
     @Before
     public void setup() {
-        mockMvc = MockMvcBuilders.standaloneSetup(leagueController).build();
+        mockMvc = MockMvcBuilders.standaloneSetup(leagueController).setControllerAdvice(exceptionHandler).build();
 
         // We always use actual toResource/toResources implementation
         given(resourceAssembler.toResource(any(League.class))).willCallRealMethod();
@@ -88,5 +96,19 @@ public class LeagueControllerTest {
         assertThat(json.read("$.content[0].links[?(@.rel=='leagues')].href").toString()).contains("/api\\/leagues");
         assertThat(json.read("$.content[0].links[?(@.rel=='self')].href").toString())
                 .contains("/api\\/leagues\\/" + league.getId().toString());
+    }
+
+    @Test
+    public void getLeagueReturnsCorrectResponseWhenResourceDoesNotExist() throws Exception {
+        // Given
+        given(leagueService.findById(1L)).willThrow(new ResourceDoesNotExistException("League with this id does not exist"));
+
+        // When
+        MockHttpServletResponse response = mockMvc.perform(get("/api/leagues/1")
+                .accept(MediaType.APPLICATION_JSON)).andReturn().getResponse();
+
+        // Then
+        assertThat(response.getStatus()).isEqualTo(HttpStatus.NOT_FOUND.value());
+        assertThat(response.getContentAsString()).contains("League with this id does not exist");
     }
 }
