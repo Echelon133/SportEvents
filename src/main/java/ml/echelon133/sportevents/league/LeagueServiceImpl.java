@@ -1,5 +1,6 @@
 package ml.echelon133.sportevents.league;
 
+import ml.echelon133.sportevents.exception.ResourceDoesNotExistException;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
@@ -32,11 +33,11 @@ public class LeagueServiceImpl implements LeagueService {
     }
 
     @Override
-    public League findById(Long id) throws IllegalArgumentException {
+    public League findById(Long id) throws ResourceDoesNotExistException {
         Optional<League> league = leagueRepository.findById(id);
         if (league.isPresent()) {
             return league.get();
         }
-        throw new IllegalArgumentException("League with this id does not exist");
+        throw new ResourceDoesNotExistException("League with this id does not exist");
     }
 }
