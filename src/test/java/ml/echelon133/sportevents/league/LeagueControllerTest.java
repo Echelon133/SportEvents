@@ -1,5 +1,6 @@
 package ml.echelon133.sportevents.league;
 
+import com.fasterxml.jackson.databind.ObjectMapper;
 import com.jayway.jsonpath.Configuration;
 import com.jayway.jsonpath.DocumentContext;
 import com.jayway.jsonpath.JsonPath;
@@ -12,6 +13,8 @@ import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.MockitoJUnitRunner;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.boot.test.json.JacksonTester;
+import org.springframework.boot.test.json.JsonContent;
 import org.springframework.boot.test.json.JsonContentAssert;
 import org.springframework.context.ApplicationContext;
 import org.springframework.http.HttpStatus;
@@ -28,7 +31,7 @@ import static org.assertj.core.api.AssertionsForClassTypes.assertThat;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyIterable;
 import static org.mockito.BDDMockito.given;
-import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.*;
 
 @RunWith(MockitoJUnitRunner.class)
 public class LeagueControllerTest {
@@ -47,8 +50,12 @@ public class LeagueControllerTest {
     @InjectMocks
     private APIExceptionHandler exceptionHandler;
 
+    private JacksonTester<LeagueDto> jsonLeagueDto;
+
     @Before
     public void setup() {
+        JacksonTester.initFields(this, new ObjectMapper());
+
         mockMvc = MockMvcBuilders.standaloneSetup(leagueController).setControllerAdvice(exceptionHandler).build();
 
         // We always use actual toResource/toResources implementation
@@ -128,6 +135,78 @@ public class LeagueControllerTest {
         DocumentContext json = JsonPath.parse(response.getContentAsString());
 
         assertThat(response.getStatus()).isEqualTo(HttpStatus.OK.value());
+        assertThat(json.read("$.links[?(@.rel=='leagues')].href").toString()).contains("/api\\/leagues");
+        assertThat(json.read("$.links[?(@.rel=='self')].href").toString()).contains("/api\\/leagues\\/" + league.getId());
+        assertThat(json.read("$.id").toString()).isEqualTo(league.getId().toString());
+        assertThat(json.read("$.name").toString()).isEqualTo(league.getName());
+        assertThat(json.read("$.country").toString()).isEqualTo(league.getCountry());
+    }
+
+    @Test
+    public void createLeagueLeagueDtoNullFieldsAreValidated() throws Exception {
+        LeagueDto leagueDto = new LeagueDto(null, null);
+
+        JsonContent<LeagueDto> leagueDtoJsonContent = jsonLeagueDto.write(leagueDto);
+
+        // When
+        MockHttpServletResponse response = mockMvc.perform(
+                post("/api/leagues")
+                        .accept(MediaType.APPLICATION_JSON)
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(leagueDtoJsonContent.getJson())
+        ).andReturn().getResponse();
+
+        // Then
+        assertThat(response.getStatus()).isEqualTo(HttpStatus.BAD_REQUEST.value());
+        assertThat(response.getContentAsString()).contains("country validation error: must not be null");
+        assertThat(response.getContentAsString()).contains("name validation error: must not be null");
+    }
+
+    @Test
+    public void createLeagueLeagueDtoFieldLengthsAreValidated() throws Exception {
+        LeagueDto leagueDto = new LeagueDto("n", "c");
+
+        JsonContent<LeagueDto> leagueDtoJsonContent = jsonLeagueDto.write(leagueDto);
+
+        // When
+        MockHttpServletResponse response = mockMvc.perform(
+                post("/api/leagues")
+                        .accept(MediaType.APPLICATION_JSON)
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(leagueDtoJsonContent.getJson())
+        ).andReturn().getResponse();
+
+        // Then
+        assertThat(response.getStatus()).isEqualTo(HttpStatus.BAD_REQUEST.value());
+        assertThat(response.getContentAsString()).contains("country validation error: length must be between 2 and 30");
+        assertThat(response.getContentAsString()).contains("name validation error: length must be between 3 and 50");
+    }
+
+    @Test
+    public void createLeagueReturnsCorrectResponseWhenLeagueDtoPassesValidation() throws Exception {
+        LeagueDto leagueDto = new LeagueDto("name", "country");
+        JsonContent<LeagueDto> leagueDtoJsonContent = jsonLeagueDto.write(leagueDto);
+
+        // "Saved" league
+        League league = new League(leagueDto.getName(), leagueDto.getCountry());
+        league.setId(1L);
+
+        // Given
+        given(leagueService.convertDtoToEntity(any(LeagueDto.class))).willReturn(league);
+        given(leagueService.save(any(League.class))).willReturn(league);
+
+        // When
+        MockHttpServletResponse response = mockMvc.perform(
+                post("/api/leagues")
+                        .accept(MediaType.APPLICATION_JSON)
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(leagueDtoJsonContent.getJson())
+        ).andReturn().getResponse();
+
+        // Then
+        DocumentContext json = JsonPath.parse(response.getContentAsString());
+
+        assertThat(response.getStatus()).isEqualTo(HttpStatus.CREATED.value());
         assertThat(json.read("$.links[?(@.rel=='leagues')].href").toString()).contains("/api\\/leagues");
         assertThat(json.read("$.links[?(@.rel=='self')].href").toString()).contains("/api\\/leagues\\/" + league.getId());
         assertThat(json.read("$.id").toString()).isEqualTo(league.getId().toString());
