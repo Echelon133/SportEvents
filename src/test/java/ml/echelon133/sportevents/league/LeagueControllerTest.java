@@ -111,4 +111,27 @@ public class LeagueControllerTest {
         assertThat(response.getStatus()).isEqualTo(HttpStatus.NOT_FOUND.value());
         assertThat(response.getContentAsString()).contains("League with this id does not exist");
     }
+
+    @Test
+    public void getLeagueReturnsExistingResourceCorrectly() throws Exception {
+        League league = new League("Test league", "Test country");
+        league.setId(1L);
+
+        // Given
+        given(leagueService.findById(1L)).willReturn(league);
+
+        // When
+        MockHttpServletResponse response = mockMvc.perform(get("/api/leagues/1")
+                .accept(MediaType.APPLICATION_JSON)).andReturn().getResponse();
+
+        // Then
+        DocumentContext json = JsonPath.parse(response.getContentAsString());
+
+        assertThat(response.getStatus()).isEqualTo(HttpStatus.OK.value());
+        assertThat(json.read("$.links[?(@.rel=='leagues')].href").toString()).contains("/api\\/leagues");
+        assertThat(json.read("$.links[?(@.rel=='self')].href").toString()).contains("/api\\/leagues\\/" + league.getId());
+        assertThat(json.read("$.id").toString()).isEqualTo(league.getId().toString());
+        assertThat(json.read("$.name").toString()).isEqualTo(league.getName());
+        assertThat(json.read("$.country").toString()).isEqualTo(league.getCountry());
+    }
 }
