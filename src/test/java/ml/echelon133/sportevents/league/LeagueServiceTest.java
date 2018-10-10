@@ -9,6 +9,7 @@ import org.mockito.junit.MockitoJUnitRunner;
 import java.util.Optional;
 
 import static org.assertj.core.api.AssertionsForClassTypes.assertThat;
+import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.BDDMockito.given;
 
 @RunWith(MockitoJUnitRunner.class)
@@ -43,5 +44,29 @@ public class LeagueServiceTest {
         assertThat(convertedLeague.getId()).isNull();
         assertThat(convertedLeague.getName()).isEqualTo(league.getName());
         assertThat(convertedLeague.getCountry()).isEqualTo(league.getCountry());
+    }
+
+    @Test
+    public void deleteByIdReturnsCorrectResponseWhenResourceAlreadyDeleted() throws Exception {
+        // Given
+        given(leagueRepository.existsById(any())).willReturn(false);
+
+        // When
+        boolean response = leagueService.deleteById(1L);
+
+        // Then
+        assertThat(response).isTrue();
+    }
+
+    @Test
+    public void deleteByIdReturnsCorrectResponseAfterDeletingResource() throws Exception {
+        // Given
+        given(leagueRepository.existsById(any())).willReturn(true, false);
+
+        // When
+        boolean response = leagueService.deleteById(1L);
+
+        // Then
+        assertThat(response).isTrue();
     }
 }
