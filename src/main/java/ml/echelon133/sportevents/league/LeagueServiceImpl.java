@@ -40,4 +40,14 @@ public class LeagueServiceImpl implements LeagueService {
         }
         throw new ResourceDoesNotExistException("League with this id does not exist");
     }
+
+    @Override
+    public boolean deleteById(Long id) {
+        boolean exists = leagueRepository.existsById(id);
+        if (exists) {
+            leagueRepository.deleteById(id);
+            exists = leagueRepository.existsById(id);
+        }
+        return !exists;
+    }
 }
