@@ -9,4 +9,5 @@ public interface LeagueService {
     League save(League league);
     List<League> findAll();
     League findById(Long id) throws ResourceDoesNotExistException;
+    boolean deleteById(Long id);
 }
