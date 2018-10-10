@@ -303,4 +303,20 @@ public class LeagueControllerTest {
         assertThat(json.read("$.name").toString()).isEqualTo(league.getName());
         assertThat(json.read("$.country").toString()).isEqualTo(league.getCountry());
     }
+
+    @Test
+    public void deleteLeagueReturnsCorrectResponseAfterDeletingResource() throws Exception {
+        // Given
+        given(leagueService.deleteById(any())).willReturn(true);
+
+        // When
+        MockHttpServletResponse response = mockMvc.perform(
+                delete("/api/leagues/1")
+                        .accept(MediaType.APPLICATION_JSON)
+        ).andReturn().getResponse();
+
+        // Then
+        assertThat(response.getStatus()).isEqualTo(HttpStatus.OK.value());
+        assertThat(response.getContentAsString()).isEqualTo("{\"deleted\":true}");
+    }
 }
