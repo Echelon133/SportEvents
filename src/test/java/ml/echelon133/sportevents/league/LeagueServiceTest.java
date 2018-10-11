@@ -1,5 +1,6 @@
 package ml.echelon133.sportevents.league;
 
+import ml.echelon133.sportevents.exception.ResourceDoesNotExistException;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.mockito.InjectMocks;
@@ -21,7 +22,7 @@ public class LeagueServiceTest {
     @InjectMocks
     private LeagueServiceImpl leagueService;
 
-    @Test(expected = IllegalArgumentException.class)
+    @Test(expected = ResourceDoesNotExistException.class)
     public void findByIdThrowsExceptionIfLeagueDoesNotExist() throws Exception {
         // Given
         given(leagueRepository.findById(1L)).willReturn(Optional.empty());
