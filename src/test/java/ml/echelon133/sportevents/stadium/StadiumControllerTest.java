@@ -3,6 +3,7 @@ package ml.echelon133.sportevents.stadium;
 import com.jayway.jsonpath.DocumentContext;
 import com.jayway.jsonpath.JsonPath;
 import ml.echelon133.sportevents.exception.APIExceptionHandler;
+import ml.echelon133.sportevents.exception.ResourceDoesNotExistException;
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -89,5 +90,45 @@ public class StadiumControllerTest {
         assertThat(json.read("$.content[0].city").toString()).isEqualTo(stadium.getCity());
         assertThat(json.read("$.content[0].capacity").toString()).isEqualTo(stadium.getCapacity().toString());
         assertThat(json.read("$.content[0].links[?(@.rel=='stadiums')].href").toString()).contains("/api\\/stadiums");
+        assertThat(json.read("$.content[0].links[?(@.rel=='self')].href").toString())
+                .contains("/api\\/stadiums\\/" + stadium.getId().toString());
+    }
+
+    @Test
+    public void getStadiumReturnsCorrectResponseWhenResourceDoesNotExist() throws Exception {
+        // Given
+        given(stadiumService.findById(1L)).willThrow(new ResourceDoesNotExistException("Stadium with this id does not exist"));
+
+        // When
+        MockHttpServletResponse response = mockMvc.perform(get("/api/stadiums/1")
+                .accept(MediaType.APPLICATION_JSON)).andReturn().getResponse();
+
+        // Then
+        assertThat(response.getStatus()).isEqualTo(HttpStatus.NOT_FOUND.value());
+        assertThat(response.getContentAsString()).contains("Stadium with this id does not exist");
+    }
+
+    @Test
+    public void getStadiumReturnsExistingResourceCorrectly() throws Exception {
+        Stadium stadium = new Stadium("Test stadium", "Test city", 40000);
+        stadium.setId(1L);
+
+        // Given
+        given(stadiumService.findById(1L)).willReturn(stadium);
+
+        // When
+        MockHttpServletResponse response = mockMvc.perform(get("/api/stadiums/1")
+                .accept(MediaType.APPLICATION_JSON)).andReturn().getResponse();
+
+        // Then
+        DocumentContext json = JsonPath.parse(response.getContentAsString());
+
+        assertThat(response.getStatus()).isEqualTo(HttpStatus.OK.value());
+        assertThat(json.read("$.links[?(@.rel=='stadiums')].href").toString()).contains("/api\\/stadiums");
+        assertThat(json.read("$.links[?(@.rel=='self')].href").toString()).contains("/api\\/stadiums\\/" + stadium.getId());
+        assertThat(json.read("$.id").toString()).isEqualTo(stadium.getId().toString());
+        assertThat(json.read("$.name").toString()).isEqualTo(stadium.getName());
+        assertThat(json.read("$.city").toString()).isEqualTo(stadium.getCity());
+        assertThat(json.read("$.capacity").toString()).isEqualTo(stadium.getCapacity().toString());
     }
 }
