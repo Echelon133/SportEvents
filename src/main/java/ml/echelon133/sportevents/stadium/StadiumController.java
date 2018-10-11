@@ -5,6 +5,7 @@ import org.springframework.hateoas.Resources;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
@@ -28,5 +29,11 @@ public class StadiumController {
         Resources<StadiumResource> resources = new Resources<>(resourceAssembler.toResources(stadiumService.findAll()));
         resources.add(linkTo(StadiumController.class).withRel("stadiums"));
         return new ResponseEntity<>(resources, HttpStatus.OK);
+    }
+
+    @GetMapping("/{stadiumId}")
+    public ResponseEntity<StadiumResource> getStadium(@PathVariable Long stadiumId) throws Exception {
+        StadiumResource stadiumResource = resourceAssembler.toResource(stadiumService.findById(stadiumId));
+        return new ResponseEntity<>(stadiumResource, HttpStatus.OK);
     }
 }
