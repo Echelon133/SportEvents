@@ -1,6 +1,5 @@
 package ml.echelon133.sportevents.league;
 
-import ml.echelon133.sportevents.exception.ResourceDoesNotExistException;
 import org.springframework.hateoas.mvc.ResourceAssemblerSupport;
 import org.springframework.stereotype.Component;
 
