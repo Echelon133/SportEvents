@@ -1,5 +1,6 @@
 package ml.echelon133.sportevents.stadium;
 
+import com.fasterxml.jackson.databind.ObjectMapper;
 import com.jayway.jsonpath.DocumentContext;
 import com.jayway.jsonpath.JsonPath;
 import ml.echelon133.sportevents.exception.APIExceptionHandler;
@@ -10,6 +11,8 @@ import org.junit.runner.RunWith;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.MockitoJUnitRunner;
+import org.springframework.boot.test.json.JacksonTester;
+import org.springframework.boot.test.json.JsonContent;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.mock.web.MockHttpServletResponse;
@@ -42,8 +45,12 @@ public class StadiumControllerTest {
     @InjectMocks
     private APIExceptionHandler exceptionHandler;
 
+    private JacksonTester<StadiumDto> jsonStadiumDto;
+
     @Before
     public void setup() {
+        JacksonTester.initFields(this, new ObjectMapper());
+
         mockMvc = MockMvcBuilders.standaloneSetup(stadiumController).setControllerAdvice(exceptionHandler).build();
 
         // We always use actual toResource/toResources implementation
@@ -124,6 +131,98 @@ public class StadiumControllerTest {
         DocumentContext json = JsonPath.parse(response.getContentAsString());
 
         assertThat(response.getStatus()).isEqualTo(HttpStatus.OK.value());
+        assertThat(json.read("$.links[?(@.rel=='stadiums')].href").toString()).contains("/api\\/stadiums");
+        assertThat(json.read("$.links[?(@.rel=='self')].href").toString()).contains("/api\\/stadiums\\/" + stadium.getId());
+        assertThat(json.read("$.id").toString()).isEqualTo(stadium.getId().toString());
+        assertThat(json.read("$.name").toString()).isEqualTo(stadium.getName());
+        assertThat(json.read("$.city").toString()).isEqualTo(stadium.getCity());
+        assertThat(json.read("$.capacity").toString()).isEqualTo(stadium.getCapacity().toString());
+    }
+
+    @Test
+    public void createStadiumStadiumDtoNullFieldsAreValidated() throws Exception {
+        StadiumDto stadiumDto = new StadiumDto(null, null, 40000);
+
+        JsonContent<StadiumDto> stadiumDtoJsonContent = jsonStadiumDto.write(stadiumDto);
+
+        // When
+        MockHttpServletResponse response = mockMvc.perform(
+                post("/api/stadiums")
+                        .accept(MediaType.APPLICATION_JSON)
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(stadiumDtoJsonContent.getJson())
+        ).andReturn().getResponse();
+
+        // Then
+        assertThat(response.getStatus()).isEqualTo(HttpStatus.BAD_REQUEST.value());
+        assertThat(response.getContentAsString()).contains("city validation error: must not be null");
+        assertThat(response.getContentAsString()).contains("name validation error: must not be null");
+    }
+
+    @Test
+    public void createStadiumStadiumDtoPositiveFieldsAreValidated() throws Exception {
+        StadiumDto stadiumDto = new StadiumDto("name", "city", -1);
+
+        JsonContent<StadiumDto> stadiumDtoJsonContent = jsonStadiumDto.write(stadiumDto);
+
+        // When
+        MockHttpServletResponse response = mockMvc.perform(
+                post("/api/stadiums")
+                        .accept(MediaType.APPLICATION_JSON)
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(stadiumDtoJsonContent.getJson())
+        ).andReturn().getResponse();
+
+        // Then
+        assertThat(response.getStatus()).isEqualTo(HttpStatus.BAD_REQUEST.value());
+        assertThat(response.getContentAsString()).contains("capacity validation error: must be greater than 0");
+    }
+
+    @Test
+    public void createStadiumStadiumDtoFieldLengthsAreValidated() throws Exception {
+        StadiumDto stadiumDto = new StadiumDto("n", "c", null);
+
+        JsonContent<StadiumDto> stadiumDtoJsonContent = jsonStadiumDto.write(stadiumDto);
+
+        // When
+        MockHttpServletResponse response = mockMvc.perform(
+                post("/api/stadiums")
+                        .accept(MediaType.APPLICATION_JSON)
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(stadiumDtoJsonContent.getJson())
+        ).andReturn().getResponse();
+
+        // Then
+        assertThat(response.getStatus()).isEqualTo(HttpStatus.BAD_REQUEST.value());
+        assertThat(response.getContentAsString()).contains("city validation error: length must be between 2 and 150");
+        assertThat(response.getContentAsString()).contains("name validation error: length must be between 3 and 200");
+    }
+
+    @Test
+    public void createStadiumReturnsCorrectResponseWhenStadiumDtoPassesValidation() throws Exception {
+        StadiumDto stadiumDto = new StadiumDto("name", "city", 2000);
+        JsonContent<StadiumDto> stadiumDtoJsonContent = jsonStadiumDto.write(stadiumDto);
+
+        // "Saved" stadium
+        Stadium stadium = new Stadium(stadiumDto.getName(), stadiumDto.getCity(), stadiumDto.getCapacity());
+        stadium.setId(1L);
+
+        // Given
+        given(stadiumService.convertDtoToEntity(any(StadiumDto.class))).willReturn(stadium);
+        given(stadiumService.save(any(Stadium.class))).willReturn(stadium);
+
+        // When
+        MockHttpServletResponse response = mockMvc.perform(
+                post("/api/stadiums")
+                        .accept(MediaType.APPLICATION_JSON)
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(stadiumDtoJsonContent.getJson())
+        ).andReturn().getResponse();
+
+        // Then
+        DocumentContext json = JsonPath.parse(response.getContentAsString());
+
+        assertThat(response.getStatus()).isEqualTo(HttpStatus.CREATED.value());
         assertThat(json.read("$.links[?(@.rel=='stadiums')].href").toString()).contains("/api\\/stadiums");
         assertThat(json.read("$.links[?(@.rel=='self')].href").toString()).contains("/api\\/stadiums\\/" + stadium.getId());
         assertThat(json.read("$.id").toString()).isEqualTo(stadium.getId().toString());
