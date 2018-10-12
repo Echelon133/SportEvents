@@ -1,6 +1,7 @@
 package ml.echelon133.sportevents.stadium;
 
 import ml.echelon133.sportevents.exception.FailedValidationException;
+import ml.echelon133.sportevents.exception.ResourceDoesNotExistException;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.hateoas.Resources;
 import org.springframework.http.HttpStatus;
@@ -50,5 +51,26 @@ public class StadiumController {
         Stadium savedStadium = stadiumService.save(stadium);
         StadiumResource stadiumResource = resourceAssembler.toResource(savedStadium);
         return new ResponseEntity<>(stadiumResource, HttpStatus.CREATED);
+    }
+
+    @PutMapping("/{stadiumId}")
+    public ResponseEntity<StadiumResource> replaceStadium(@PathVariable Long stadiumId,
+                                                          @Valid @RequestBody StadiumDto stadiumDto,
+                                                          BindingResult result) throws FailedValidationException,
+            ResourceDoesNotExistException {
+
+        if (result.hasErrors()) {
+            throw new FailedValidationException(result.getFieldErrors());
+        }
+
+        Stadium stadiumToReplace = stadiumService.findById(stadiumId);
+
+        // findById did not throw ResourceDoesNotExistException, we are 100% sure that this resource can be replaced
+        Stadium replacementEntity = stadiumService.convertDtoToEntity(stadiumDto);
+        replacementEntity.setId(stadiumToReplace.getId());
+
+        Stadium savedStadium = stadiumService.save(replacementEntity);
+        StadiumResource stadiumResource = resourceAssembler.toResource(savedStadium);
+        return new ResponseEntity<>(stadiumResource, HttpStatus.OK);
     }
 }
