@@ -345,4 +345,20 @@ public class StadiumControllerTest {
         assertThat(json.read("$.city").toString()).isEqualTo(stadium.getCity());
         assertThat(json.read("$.capacity").toString()).isEqualTo(stadium.getCapacity().toString());
     }
+
+    @Test
+    public void deleteStadiumReturnsCorrectResponseAfterDeletingResource() throws Exception {
+        // Given
+        given(stadiumService.deleteById(any())).willReturn(true);
+
+        // When
+        MockHttpServletResponse response = mockMvc.perform(
+                delete("/api/stadiums/1")
+                        .accept(MediaType.APPLICATION_JSON)
+        ).andReturn().getResponse();
+
+        // Then
+        assertThat(response.getStatus()).isEqualTo(HttpStatus.OK.value());
+        assertThat(response.getContentAsString()).isEqualTo("{\"deleted\":true}");
+    }
 }
