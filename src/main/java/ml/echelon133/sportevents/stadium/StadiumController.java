@@ -1,13 +1,14 @@
 package ml.echelon133.sportevents.stadium;
 
+import ml.echelon133.sportevents.exception.FailedValidationException;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.hateoas.Resources;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
-import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.PathVariable;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.validation.BindingResult;
+import org.springframework.web.bind.annotation.*;
+
+import javax.validation.Valid;
 
 import static org.springframework.hateoas.mvc.ControllerLinkBuilder.linkTo;
 
@@ -35,5 +36,19 @@ public class StadiumController {
     public ResponseEntity<StadiumResource> getStadium(@PathVariable Long stadiumId) throws Exception {
         StadiumResource stadiumResource = resourceAssembler.toResource(stadiumService.findById(stadiumId));
         return new ResponseEntity<>(stadiumResource, HttpStatus.OK);
+    }
+
+    @PostMapping
+    public ResponseEntity<StadiumResource> createStadium(@Valid @RequestBody StadiumDto stadiumDto, BindingResult result)
+            throws FailedValidationException {
+
+        if (result.hasErrors()) {
+            throw new FailedValidationException(result.getFieldErrors());
+        }
+
+        Stadium stadium = stadiumService.convertDtoToEntity(stadiumDto);
+        Stadium savedStadium = stadiumService.save(stadium);
+        StadiumResource stadiumResource = resourceAssembler.toResource(savedStadium);
+        return new ResponseEntity<>(stadiumResource, HttpStatus.CREATED);
     }
 }
