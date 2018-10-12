@@ -11,6 +11,9 @@ import org.springframework.web.bind.annotation.*;
 
 import javax.validation.Valid;
 
+import java.util.Collections;
+import java.util.Map;
+
 import static org.springframework.hateoas.mvc.ControllerLinkBuilder.linkTo;
 
 @RestController
@@ -72,5 +75,12 @@ public class StadiumController {
         Stadium savedStadium = stadiumService.save(replacementEntity);
         StadiumResource stadiumResource = resourceAssembler.toResource(savedStadium);
         return new ResponseEntity<>(stadiumResource, HttpStatus.OK);
+    }
+
+    @DeleteMapping("/{stadiumId}")
+    public ResponseEntity<Map> deleteStadium(@PathVariable Long stadiumId) {
+        boolean deleted = stadiumService.deleteById(stadiumId);
+        Map<String, Boolean> response = Collections.singletonMap("deleted", deleted);
+        return new ResponseEntity<>(response, HttpStatus.OK);
     }
 }
