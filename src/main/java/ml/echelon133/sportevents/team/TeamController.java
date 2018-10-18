@@ -88,4 +88,11 @@ public class TeamController {
         TeamResource teamResource = resourceAssembler.toResource(savedTeam);
         return new ResponseEntity<>(teamResource, HttpStatus.OK);
     }
+
+    @DeleteMapping("/{teamId}")
+    public ResponseEntity<Map> deleteTeam(@PathVariable Long teamId) {
+        boolean deleted = teamService.deleteById(teamId);
+        Map<String, Boolean> response = Collections.singletonMap("deleted", deleted);
+        return new ResponseEntity<>(response, HttpStatus.OK);
+    }
 }
