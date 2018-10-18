@@ -10,7 +10,9 @@ import org.springframework.validation.BindingResult;
 import org.springframework.web.bind.annotation.*;
 
 import javax.validation.Valid;
+import java.util.Collections;
 import java.util.List;
+import java.util.Map;
 
 import static org.springframework.hateoas.mvc.ControllerLinkBuilder.linkTo;
 
@@ -64,5 +66,26 @@ public class TeamController {
         Team savedTeam = teamService.save(team);
         TeamResource teamResource = resourceAssembler.toResource(savedTeam);
         return new ResponseEntity<>(teamResource, HttpStatus.CREATED);
+    }
+
+    @PutMapping("/{teamId}")
+    public ResponseEntity<TeamResource> replaceTeam(@PathVariable Long teamId,
+                                                    @Valid @RequestBody TeamDto teamDto,
+                                                    BindingResult result) throws FailedValidationException,
+            ResourceDoesNotExistException {
+
+        if (result.hasErrors()) {
+            throw new FailedValidationException(result.getFieldErrors());
+        }
+
+        Team teamToReplace = teamService.findById(teamId);
+
+        // If new leagueId from teamDto points to nonexistent league, conversion fails
+        Team replacementEntity = teamService.convertDtoToEntity(teamDto);
+        replacementEntity.setId(teamToReplace.getId());
+
+        Team savedTeam = teamService.save(replacementEntity);
+        TeamResource teamResource = resourceAssembler.toResource(savedTeam);
+        return new ResponseEntity<>(teamResource, HttpStatus.OK);
     }
 }
