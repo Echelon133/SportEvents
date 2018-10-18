@@ -29,8 +29,7 @@ public class TeamController {
 
     @GetMapping
     public ResponseEntity<Resources<TeamResource>> getTeams(
-            @RequestParam(value = "nameContains", required = false) String name
-    ) throws Exception {
+            @RequestParam(value = "nameContains", required = false) String name) {
 
         List<Team> teams;
         if (name == null) {
