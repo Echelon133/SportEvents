@@ -5,10 +5,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.hateoas.Resources;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
-import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RequestParam;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
 
@@ -45,5 +42,11 @@ public class TeamController {
         Resources<TeamResource> resources = new Resources<>(resourceAssembler.toResources(teams));
         resources.add(linkTo(TeamController.class).withRel("teams"));
         return new ResponseEntity<>(resources, HttpStatus.OK);
+    }
+
+    @GetMapping("/{teamId}")
+    public ResponseEntity<TeamResource> getTeam(@PathVariable Long teamId) throws Exception {
+        TeamResource teamResource = resourceAssembler.toResource(teamService.findById(teamId));
+        return new ResponseEntity<>(teamResource, HttpStatus.OK);
     }
 }
