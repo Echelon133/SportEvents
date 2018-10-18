@@ -1,5 +1,6 @@
 package ml.echelon133.sportevents.team;
 
+import com.fasterxml.jackson.databind.ObjectMapper;
 import com.jayway.jsonpath.DocumentContext;
 import com.jayway.jsonpath.JsonPath;
 import ml.echelon133.sportevents.exception.APIExceptionHandler;
@@ -11,6 +12,8 @@ import org.junit.runner.RunWith;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.MockitoJUnitRunner;
+import org.springframework.boot.test.json.JacksonTester;
+import org.springframework.boot.test.json.JsonContent;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.mock.web.MockHttpServletResponse;
@@ -21,7 +24,7 @@ import java.util.Collections;
 import java.util.List;
 
 import static org.assertj.core.api.AssertionsForClassTypes.assertThat;
-import static org.mockito.ArgumentMatchers.anyLong;
+import static org.mockito.ArgumentMatchers.*;
 import static org.mockito.BDDMockito.given;
 import static org.springframework.hateoas.mvc.ControllerLinkBuilder.linkTo;
 import static org.springframework.hateoas.mvc.ControllerLinkBuilder.methodOn;
@@ -47,8 +50,12 @@ public class TeamControllerTest {
     @InjectMocks
     private TeamController teamController;
 
+    private JacksonTester<TeamDto> jsonTeamDto;
+
     @Before
     public void setup() {
+        JacksonTester.initFields(this, new ObjectMapper());
+
         mockMvc = MockMvcBuilders.standaloneSetup(teamController).setControllerAdvice(exceptionHandler).build();
     }
 
@@ -211,4 +218,113 @@ public class TeamControllerTest {
         assertThat(json.read("$.league.links[?(@.rel=='self')].href").toString())
                 .contains("/api\\/leagues\\/" + testTeam.getLeague().getId().toString());
     }
+
+    @Test
+    public void createTeamTeamDtoNullFieldsAreValidated() throws Exception {
+        TeamDto teamDto = new TeamDto(null, null);
+
+        JsonContent<TeamDto> teamDtoJsonContent = jsonTeamDto.write(teamDto);
+
+        // When
+        MockHttpServletResponse response = mockMvc.perform(
+                post("/api/teams")
+                        .accept(MediaType.APPLICATION_JSON)
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(teamDtoJsonContent.getJson())
+        ).andReturn().getResponse();
+
+        // Then
+        assertThat(response.getStatus()).isEqualTo(HttpStatus.BAD_REQUEST.value());
+        assertThat(response.getContentAsString()).contains("leagueId validation error: must not be null");
+        assertThat(response.getContentAsString()).contains("name validation error: must not be null");
+    }
+
+    @Test
+    public void createTeamTeamDtoFieldLengthsAreValidated() throws Exception {
+        TeamDto teamDto = new TeamDto("t", 5L);
+
+        JsonContent<TeamDto> teamDtoJsonContent = jsonTeamDto.write(teamDto);
+
+        // When
+        MockHttpServletResponse response = mockMvc.perform(
+                post("/api/teams")
+                        .accept(MediaType.APPLICATION_JSON)
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(teamDtoJsonContent.getJson())
+        ).andReturn().getResponse();
+
+        // Then
+        assertThat(response.getStatus()).isEqualTo(HttpStatus.BAD_REQUEST.value());
+        assertThat(response.getContentAsString()).contains("name validation error: length must be between 2 and 200");
+    }
+
+    @Test
+    public void createTeamReturnsCorrectResponseWhenDtoConversionFails() throws Exception {
+        TeamDto teamDto = new TeamDto("teamname", 5L);
+
+        JsonContent<TeamDto> teamDtoJsonContent = jsonTeamDto.write(teamDto);
+
+        // Given
+        given(teamService.convertDtoToEntity(any(TeamDto.class)))
+                .willThrow(new ResourceDoesNotExistException("League with this id does not exist"));
+
+        // When
+        MockHttpServletResponse response = mockMvc.perform(
+                post("/api/teams")
+                        .accept(MediaType.APPLICATION_JSON)
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(teamDtoJsonContent.getJson())
+        ).andReturn().getResponse();
+
+        // Then
+        assertThat(response.getStatus()).isEqualTo(HttpStatus.NOT_FOUND.value());
+        assertThat(response.getContentAsString()).contains("League with this id does not exist");
+    }
+
+    @Test
+    public void createTeamReturnsCorrectResponseOnSuccess() throws Exception {
+        League testLeague = buildLeague(1L, "league name", "league country");
+        Team testTeam = buildTeam(1L, "team name", testLeague);
+        TeamResource teamResource = buildTeamResource(testTeam);
+
+        TeamDto teamDto = new TeamDto(testTeam.getName(), testLeague.getId());
+
+        JsonContent<TeamDto> teamDtoJsonContent = jsonTeamDto.write(teamDto);
+
+        // Given
+        given(teamService.convertDtoToEntity(
+                argThat(arg -> arg.getName().equals(teamDto.getName())
+                        &&
+                        arg.getLeagueId().longValue() == teamDto.getLeagueId()))).willReturn(testTeam);
+        given(teamService.save(testTeam)).willReturn(testTeam);
+        given(teamResourceAssembler.toResource(testTeam)).willReturn(teamResource);
+
+        // When
+        MockHttpServletResponse response = mockMvc.perform(
+                post("/api/teams")
+                        .accept(MediaType.APPLICATION_JSON)
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(teamDtoJsonContent.getJson())
+        ).andReturn().getResponse();
+
+        // Then
+        DocumentContext json = JsonPath.parse(response.getContentAsString());
+
+        assertThat(response.getStatus()).isEqualTo(HttpStatus.CREATED.value());
+
+        assertThat(json.read("$.id").toString()).isEqualTo(testTeam.getId().toString());
+        assertThat(json.read("$.name").toString()).isEqualTo(testTeam.getName());
+        assertThat(json.read("$.links[?(@.rel=='teams')].href").toString()).contains("/api\\/teams");
+        assertThat(json.read("$.links[?(@.rel=='self')].href").toString())
+                .contains("/api\\/teams\\/" + testTeam.getId());
+
+        assertThat(json.read("$.league.id").toString()).isEqualTo(testTeam.getLeague().getId().toString());
+        assertThat(json.read("$.league.name").toString()).isEqualTo(testTeam.getLeague().getName());
+        assertThat(json.read("$.league.country").toString()).isEqualTo(testTeam.getLeague().getCountry());
+        assertThat(json.read("$.league.links[?(@.rel=='leagues')].href").toString())
+                .contains("/api\\/leagues");
+        assertThat(json.read("$.league.links[?(@.rel=='self')].href").toString())
+                .contains("/api\\/leagues\\/" + testTeam.getLeague().getId().toString());
+    }
+
 }
