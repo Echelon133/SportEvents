@@ -435,4 +435,19 @@ public class TeamControllerTest {
                 .contains("/api\\/leagues\\/" + replacementTeam.getLeague().getId().toString());
     }
 
+    @Test
+    public void deleteTeamReturnsCorrectResponseAfterDeletingResource() throws Exception {
+        // Given
+        given(teamService.deleteById(any())).willReturn(true);
+
+        // When
+        MockHttpServletResponse response = mockMvc.perform(
+                delete("/api/teams/1")
+                        .accept(MediaType.APPLICATION_JSON)
+        ).andReturn().getResponse();
+
+        // Then
+        assertThat(response.getStatus()).isEqualTo(HttpStatus.OK.value());
+        assertThat(response.getContentAsString()).isEqualTo("{\"deleted\":true}");
+    }
 }
