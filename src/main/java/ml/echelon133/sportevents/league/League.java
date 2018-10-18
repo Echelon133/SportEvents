@@ -1,9 +1,10 @@
 package ml.echelon133.sportevents.league;
 
-import javax.persistence.Entity;
-import javax.persistence.GeneratedValue;
-import javax.persistence.GenerationType;
-import javax.persistence.Id;
+import ml.echelon133.sportevents.team.Team;
+
+import javax.persistence.*;
+import java.util.HashSet;
+import java.util.Set;
 
 @Entity
 public class League {
@@ -15,10 +16,14 @@ public class League {
     private String name;
     private String country;
 
+    @OneToMany(mappedBy = "league", cascade = CascadeType.MERGE)
+    private Set<Team> teams;
+
     public League() {}
     public League(String name, String country) {
         this.name = name;
         this.country = country;
+        this.teams = new HashSet<>();
     }
 
     public Long getId() {
@@ -43,5 +48,13 @@ public class League {
 
     public void setCountry(String country) {
         this.country = country;
+    }
+
+    public void addTeam(Team team) {
+        teams.add(team);
+    }
+
+    public void removeTeam(Team team) {
+        teams.remove(team);
     }
 }
