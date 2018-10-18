@@ -2,7 +2,6 @@ package ml.echelon133.sportevents.team;
 
 import ml.echelon133.sportevents.exception.FailedValidationException;
 import ml.echelon133.sportevents.exception.ResourceDoesNotExistException;
-import ml.echelon133.sportevents.league.LeagueService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.hateoas.Resources;
 import org.springframework.http.HttpStatus;
@@ -21,13 +20,11 @@ import static org.springframework.hateoas.mvc.ControllerLinkBuilder.linkTo;
 public class TeamController {
 
     private TeamService teamService;
-    private LeagueService leagueService;
     private TeamResourceAssembler resourceAssembler;
 
     @Autowired
-    public TeamController(TeamService teamService, LeagueService leagueService, TeamResourceAssembler resourceAssembler) {
+    public TeamController(TeamService teamService, TeamResourceAssembler resourceAssembler) {
         this.teamService = teamService;
-        this.leagueService = leagueService;
         this.resourceAssembler = resourceAssembler;
     }
 

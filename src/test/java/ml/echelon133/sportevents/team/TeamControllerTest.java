@@ -39,9 +39,6 @@ public class TeamControllerTest {
     private TeamService teamService;
 
     @Mock
-    private LeagueService leagueService;
-
-    @Mock
     private TeamResourceAssembler teamResourceAssembler;
 
     @InjectMocks
