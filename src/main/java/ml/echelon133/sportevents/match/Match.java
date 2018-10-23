@@ -11,11 +11,20 @@ import java.util.Date;
 @Table(name = "football_match")
 public class Match {
 
+    public enum Status {
+        NOT_STARTED, FIRST_HALF, SECOND_HALF,
+        BREAK_TIME, OT_FIRST_HALF, OT_SECOND_HALF,
+        PENALTIES, FINISHED
+    }
+
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
     private Date startDate;
+
+    @Enumerated(EnumType.STRING)
+    private Status status;
 
     @ManyToOne(optional = false, cascade = CascadeType.MERGE)
     @JoinColumn(name="teamA_id")
@@ -38,7 +47,9 @@ public class Match {
 
     public Match() {
         this.result = new ScoreInfo();
+        this.status = Status.NOT_STARTED;
     }
+
     public Match(Date startDate, Team teamA, Team teamB) {
         this();
         this.startDate = startDate;
