@@ -34,13 +34,24 @@ public class MatchResourceAssembler extends ResourceAssemblerSupport<Match, Matc
     public MatchResource toResource(Match entity) {
         TeamResource teamA = teamResourceAssembler.toResource(entity.getTeamA());
         TeamResource teamB = teamResourceAssembler.toResource(entity.getTeamB());
-        LeagueResource league = leagueResourceAssembler.toResource(entity.getLeague());
-        StadiumResource stadium = stadiumResourceAssembler.toResource(entity.getStadium());
-        return new MatchResource(entity,
-                                 teamA,
-                                 teamB,
-                                 league,
-                                 stadium,
-                                 linkTo(MatchController.class).withRel("matches"));
+        LeagueResource league;
+        StadiumResource stadium;
+
+        // entity.getLeague() can be null (league field is not required)
+        try {
+            league = leagueResourceAssembler.toResource(entity.getLeague());
+        } catch (Exception ex) {
+            league = null;
+        }
+
+        // entity.getStadium() can be null (stadium field is not required)
+        try {
+            stadium = stadiumResourceAssembler.toResource(entity.getStadium());
+        } catch (Exception ex) {
+            stadium = null;
+        }
+
+        return new MatchResource(entity, teamA, teamB,
+                                 league, stadium, linkTo(MatchController.class).withRel("matches"));
     }
 }
