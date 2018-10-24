@@ -5,16 +5,11 @@ import ml.echelon133.sportevents.exception.ResourceDoesNotExistException;
 import java.util.List;
 
 public interface MatchService {
-
-    enum DateWithin {
-        DAY, THREE_DAYS, WEEK, MONTH
-    }
-
     Match convertDtoToEntity(MatchDto matchDto) throws ResourceDoesNotExistException;
     Match save(Match match);
     List<Match> findAll();
-    List<Match> findAllWithDateWithin(DateWithin time);
-    List<Match> findAllWithStatus(Match.Status status);
+    List<Match> findAllWithDateWithin(String dateWithin);
+    List<Match> findAllWithStatus(String status);
     Match findById(Long id) throws ResourceDoesNotExistException;
     boolean deleteById(Long id);
 }
