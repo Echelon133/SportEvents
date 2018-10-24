@@ -122,4 +122,8 @@ public class Match {
     public void setResult(ScoreInfo result) {
         this.result = result;
     }
+
+    public Status getStatus() {
+        return status;
+    }
 }
