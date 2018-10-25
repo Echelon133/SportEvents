@@ -25,7 +25,7 @@ public class MatchServiceImpl implements MatchService {
 
     @Override
     public Match save(Match match) {
-        return null;
+        return matchRepository.save(match);
     }
 
     @Override
