@@ -18,6 +18,7 @@ import java.util.Collections;
 import java.util.List;
 import java.util.Optional;
 
+import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.BDDMockito.given;
 import static org.assertj.core.api.AssertionsForClassTypes.assertThat;
 
@@ -153,5 +154,17 @@ public class MatchServiceTest {
         assertThat(convertedMatch.getTeamB()).isEqualTo(team2);
         assertThat(convertedMatch.getLeague()).isEqualTo(league);
         assertThat(convertedMatch.getStadium()).isEqualTo(stadium);
+    }
+
+    @Test
+    public void deleteByIdReturnsCorrectResponseAfterDeletingResource() throws Exception {
+        // Given
+        given(matchRepository.existsById(any())).willReturn(true, false);
+
+        // When
+        boolean response = matchService.deleteById(1L);
+
+        // Then
+        assertThat(response).isTrue();
     }
 }
