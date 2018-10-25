@@ -1,26 +1,71 @@
 package ml.echelon133.sportevents.match;
 
 import ml.echelon133.sportevents.exception.ResourceDoesNotExistException;
+import ml.echelon133.sportevents.league.League;
+import ml.echelon133.sportevents.league.LeagueService;
+import ml.echelon133.sportevents.stadium.Stadium;
+import ml.echelon133.sportevents.stadium.StadiumService;
+import ml.echelon133.sportevents.team.Team;
+import ml.echelon133.sportevents.team.TeamService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
-import java.util.Collections;
-import java.util.List;
-import java.util.Optional;
+import java.text.DateFormat;
+import java.text.ParseException;
+import java.text.SimpleDateFormat;
+import java.util.*;
 
 @Service
 public class MatchServiceImpl implements MatchService {
 
     private MatchRepository matchRepository;
+    private TeamService teamService;
+    private LeagueService leagueService;
+    private StadiumService stadiumService;
 
     @Autowired
-    public MatchServiceImpl(MatchRepository matchRepository) {
+    public MatchServiceImpl(MatchRepository matchRepository,
+                            TeamService teamService,
+                            LeagueService leagueService,
+                            StadiumService stadiumService) {
         this.matchRepository = matchRepository;
+        this.teamService = teamService;
+        this.leagueService = leagueService;
+        this.stadiumService = stadiumService;
+    }
+
+    private Date convertStringToDate(String dateAsString) throws ParseException {
+        DateFormat format = new SimpleDateFormat("yyyy-MM-dd HH:mm", Locale.ENGLISH);
+        return format.parse(dateAsString);
     }
 
     @Override
-    public Match convertDtoToEntity(MatchDto matchDto) throws ResourceDoesNotExistException {
-        return null;
+    public Match convertDtoToEntity(MatchDto matchDto) throws ResourceDoesNotExistException, ParseException {
+        Date startDate;
+        Team teamA;
+        Team teamB;
+        League league;
+        Stadium stadium;
+
+        // startDate, teamA, teamB must not be null
+        startDate = convertStringToDate(matchDto.getStartDate());
+        teamA = teamService.findById(matchDto.getTeamA());
+        teamB = teamService.findById(matchDto.getTeamB());
+
+        // league/stadium can be set to null if they are not given by the user (they are not required)
+        if (matchDto.getLeague() == null) {
+            league = null;
+        } else {
+            league = leagueService.findById(matchDto.getLeague());
+        }
+
+        if (matchDto.getStadium() == null) {
+            stadium = null;
+        } else {
+            stadium = stadiumService.findById(matchDto.getStadium());
+        }
+
+        return new Match(startDate, teamA, teamB, league, stadium);
     }
 
     @Override
