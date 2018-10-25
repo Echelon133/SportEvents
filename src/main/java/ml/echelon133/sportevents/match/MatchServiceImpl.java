@@ -30,7 +30,7 @@ public class MatchServiceImpl implements MatchService {
 
     @Override
     public List<Match> findAll() {
-        return null;
+        return matchRepository.findAll();
     }
 
     @Override
