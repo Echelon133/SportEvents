@@ -107,6 +107,11 @@ public class MatchServiceImpl implements MatchService {
 
     @Override
     public boolean deleteById(Long id) {
-        return false;
+        boolean exists = matchRepository.existsById(id);
+        if (exists) {
+            matchRepository.deleteById(id);
+            exists = matchRepository.existsById(id);
+        }
+        return !exists;
     }
 }
