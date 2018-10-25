@@ -6,6 +6,7 @@ import org.springframework.stereotype.Service;
 
 import java.util.Collections;
 import java.util.List;
+import java.util.Optional;
 
 @Service
 public class MatchServiceImpl implements MatchService {
@@ -52,7 +53,11 @@ public class MatchServiceImpl implements MatchService {
 
     @Override
     public Match findById(Long id) throws ResourceDoesNotExistException {
-        return null;
+        Optional<Match> match = matchRepository.findById(id);
+        if (match.isPresent()) {
+            return match.get();
+        }
+        throw new ResourceDoesNotExistException("Match with this id does not exist");
     }
 
     @Override
