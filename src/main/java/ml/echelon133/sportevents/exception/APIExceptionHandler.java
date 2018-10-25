@@ -7,6 +7,7 @@ import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.context.request.WebRequest;
 import org.springframework.web.servlet.mvc.method.annotation.ResponseEntityExceptionHandler;
 
+import java.text.ParseException;
 import java.util.Arrays;
 import java.util.Date;
 import java.util.List;
@@ -53,6 +54,12 @@ public class APIExceptionHandler extends ResponseEntityExceptionHandler {
     @ExceptionHandler(value = FailedValidationException.class)
     protected ResponseEntity<ErrorMessage> handleFailedValidationException(FailedValidationException ex, WebRequest request) {
         ErrorMessage message = new ErrorMessage(new Date(), request.getDescription(false), ex.getTextErrors());
+        return new ResponseEntity<>(message, HttpStatus.BAD_REQUEST);
+    }
+
+    @ExceptionHandler(value = ParseException.class)
+    protected ResponseEntity<ErrorMessage> handleParseException(ParseException ex, WebRequest request) {
+        ErrorMessage message = new ErrorMessage(new Date(), request.getDescription(false), ex.getMessage());
         return new ResponseEntity<>(message, HttpStatus.BAD_REQUEST);
     }
 }
