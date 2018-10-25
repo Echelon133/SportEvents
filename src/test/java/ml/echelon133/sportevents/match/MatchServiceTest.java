@@ -13,10 +13,8 @@ import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.MockitoJUnitRunner;
 
-import java.text.ParseException;
-import java.util.Collections;
-import java.util.List;
-import java.util.Optional;
+import java.time.format.DateTimeParseException;
+import java.util.*;
 
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.BDDMockito.given;
@@ -90,7 +88,7 @@ public class MatchServiceTest {
         assertThat(receivedMatch).isEqualTo(match);
     }
 
-    @Test(expected = ParseException.class)
+    @Test(expected = DateTimeParseException.class)
     public void convertDtoToEntityThrowsExceptionOnDateConversionFailure() throws Exception {
         MatchDto matchDto = new MatchDto("2018-10 55:99", null, null);
 
@@ -123,6 +121,8 @@ public class MatchServiceTest {
         assertThat(convertedMatch.getTeamB()).isEqualTo(team2);
         assertThat(convertedMatch.getLeague()).isNull();
         assertThat(convertedMatch.getStadium()).isNull();
+        assertThat(convertedMatch.getStartDate())
+                .hasYear(2020).hasMonth(1).hasDayOfMonth(1).hasHourOfDay(20).hasMinute(0);
     }
 
     @Test
@@ -154,6 +154,8 @@ public class MatchServiceTest {
         assertThat(convertedMatch.getTeamB()).isEqualTo(team2);
         assertThat(convertedMatch.getLeague()).isEqualTo(league);
         assertThat(convertedMatch.getStadium()).isEqualTo(stadium);
+        assertThat(convertedMatch.getStartDate())
+                .hasYear(2020).hasMonth(1).hasDayOfMonth(1).hasHourOfDay(20).hasMinute(0);
     }
 
     @Test
