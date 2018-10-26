@@ -10,9 +10,11 @@ import ml.echelon133.sportevents.team.TeamService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
-import java.text.DateFormat;
-import java.text.ParseException;
-import java.text.SimpleDateFormat;
+import java.time.Clock;
+import java.time.LocalDateTime;
+import java.time.ZoneId;
+import java.time.format.DateTimeFormatter;
+import java.time.format.DateTimeParseException;
 import java.util.*;
 
 @Service
@@ -34,13 +36,14 @@ public class MatchServiceImpl implements MatchService {
         this.stadiumService = stadiumService;
     }
 
-    private Date convertStringToDate(String dateAsString) throws ParseException {
-        DateFormat format = new SimpleDateFormat("yyyy-MM-dd HH:mm", Locale.ENGLISH);
-        return format.parse(dateAsString);
+    private Date convertStringToDate(String dateAsString) throws DateTimeParseException {
+        DateTimeFormatter formatter = DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm");
+        LocalDateTime datetime = LocalDateTime.parse(dateAsString, formatter);
+        return Date.from(datetime.atZone(ZoneId.systemDefault()).toInstant());
     }
 
     @Override
-    public Match convertDtoToEntity(MatchDto matchDto) throws ResourceDoesNotExistException, ParseException {
+    public Match convertDtoToEntity(MatchDto matchDto) throws ResourceDoesNotExistException, DateTimeParseException {
         Date startDate;
         Team teamA;
         Team teamB;
