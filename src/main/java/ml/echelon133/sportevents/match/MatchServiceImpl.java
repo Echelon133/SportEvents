@@ -20,6 +20,7 @@ import java.util.*;
 @Service
 public class MatchServiceImpl implements MatchService {
 
+    private Clock clock;
     private MatchRepository matchRepository;
     private TeamService teamService;
     private LeagueService leagueService;
@@ -30,6 +31,8 @@ public class MatchServiceImpl implements MatchService {
                             TeamService teamService,
                             LeagueService leagueService,
                             StadiumService stadiumService) {
+        // Clock instance needed to simplify testing. Tests can inject Clock.fixed(...) instances to this service
+        this.clock = Clock.systemDefaultZone();
         this.matchRepository = matchRepository;
         this.teamService = teamService;
         this.leagueService = leagueService;
@@ -83,7 +86,26 @@ public class MatchServiceImpl implements MatchService {
 
     @Override
     public List<Match> findAllWithDateWithin(String within) {
-        return null;
+        LocalDateTime now = LocalDateTime.now(clock);
+        LocalDateTime future = LocalDateTime.now(clock);
+
+        switch(within.toUpperCase()) {
+            case "DAY":
+                future = future.plusDays(1);
+                break;
+            case "THREE_DAYS":
+                future = future.plusDays(3);
+                break;
+            case "WEEK":
+                future = future.plusDays(7);
+                break;
+            default:
+                return Collections.emptyList();
+        }
+
+        Date currentDate = Date.from(now.atZone(ZoneId.systemDefault()).toInstant());
+        Date futureDate = Date.from(future.atZone(ZoneId.systemDefault()).toInstant());
+        return matchRepository.findAllByStartDateBetween(currentDate, futureDate);
     }
 
     @Override
@@ -116,5 +138,9 @@ public class MatchServiceImpl implements MatchService {
             exists = matchRepository.existsById(id);
         }
         return !exists;
+    }
+
+    public void setClock(Clock clock) {
+        this.clock = clock;
     }
 }
