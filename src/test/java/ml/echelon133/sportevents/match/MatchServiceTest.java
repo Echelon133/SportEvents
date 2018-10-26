@@ -7,12 +7,14 @@ import ml.echelon133.sportevents.stadium.Stadium;
 import ml.echelon133.sportevents.stadium.StadiumService;
 import ml.echelon133.sportevents.team.Team;
 import ml.echelon133.sportevents.team.TeamService;
+import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.MockitoJUnitRunner;
 
+import java.time.*;
 import java.time.format.DateTimeParseException;
 import java.util.*;
 
@@ -22,6 +24,8 @@ import static org.assertj.core.api.AssertionsForClassTypes.assertThat;
 
 @RunWith(MockitoJUnitRunner.class)
 public class MatchServiceTest {
+
+    private Clock fixedClock;
 
     @Mock
     private MatchRepository matchRepository;
@@ -37,6 +41,14 @@ public class MatchServiceTest {
 
     @InjectMocks
     private MatchServiceImpl matchService;
+
+    @Before
+    public void before() {
+        // Inject fixedClock into matchService to make generated dates easy to predict during testing
+        LocalDateTime dateTime = LocalDateTime.now();
+        fixedClock = Clock.fixed(dateTime.toInstant(ZoneOffset.ofHours(0)), ZoneId.systemDefault());
+        matchService.setClock(fixedClock);
+    }
 
     @Test
     public void findAllWithStatusConvertsStringToEnumValuesCorrectly() {
@@ -168,5 +180,84 @@ public class MatchServiceTest {
 
         // Then
         assertThat(response).isTrue();
+    }
+
+    @Test
+    public void findAllWithDateWithinReturnsEmptyListWhenArgumentIsInvalid() {
+        // When
+        List<Match> receivedMatches = matchService.findAllWithDateWithin("ASDF");
+
+        // Then
+        assertThat(receivedMatches).isEqualTo(Collections.emptyList());
+    }
+
+    @Test
+    public void findAllWithDateWithinReturnsCorrectResponseForDayArgument() {
+        Match match = new Match(new Date(), null, null);
+        match.setId(1L);
+
+        List<Match> matches = Collections.singletonList(match);
+
+        // Create two dates - one represents 'now', and the second represents a day after 'now'
+        LocalDateTime dayFromNow = LocalDateTime.now(fixedClock).plusDays(1);
+        Date currentDate = Date.from(fixedClock.instant());
+        Date futureDate = Date.from(dayFromNow.atZone(ZoneId.systemDefault()).toInstant());
+
+        // Given
+        given(matchRepository.findAllByStartDateBetween(currentDate, futureDate)).willReturn(matches);
+
+        // When
+        List<Match> receivedMatches = matchService.findAllWithDateWithin("DAY");
+
+        // Then
+        Match receivedMatch = receivedMatches.get(0);
+        assertThat(receivedMatch).isEqualTo(match);
+    }
+
+
+    @Test
+    public void findAllWithDateWithinReturnsCorrectResponseForThreeDaysArgument() {
+        Match match = new Match(new Date(), null, null);
+        match.setId(1L);
+
+        List<Match> matches = Collections.singletonList(match);
+
+        // Create two dates - one represents 'now', and the second represents three days after 'now'
+        LocalDateTime threeDaysFromNow = LocalDateTime.now(fixedClock).plusDays(3);
+        Date currentDate = Date.from(fixedClock.instant());
+        Date futureDate = Date.from(threeDaysFromNow.atZone(ZoneId.systemDefault()).toInstant());
+
+        // Given
+        given(matchRepository.findAllByStartDateBetween(currentDate, futureDate)).willReturn(matches);
+
+        // When
+        List<Match> receivedMatches = matchService.findAllWithDateWithin("THREE_DAYS");
+
+        // Then
+        Match receivedMatch = receivedMatches.get(0);
+        assertThat(receivedMatch).isEqualTo(match);
+    }
+
+    @Test
+    public void findAllWithDateWithinReturnsCorrectResponseForWeekArgument() {
+        Match match = new Match(new Date(), null, null);
+        match.setId(1L);
+
+        List<Match> matches = Collections.singletonList(match);
+
+        // Create two dates - one represents 'now', and the second represents a week from 'now'
+        LocalDateTime weekFromNow = LocalDateTime.now(fixedClock).plusDays(7);
+        Date currentDate = Date.from(fixedClock.instant());
+        Date futureDate = Date.from(weekFromNow.atZone(ZoneId.systemDefault()).toInstant());
+
+        // Given
+        given(matchRepository.findAllByStartDateBetween(currentDate, futureDate)).willReturn(matches);
+
+        // When
+        List<Match> receivedMatches = matchService.findAllWithDateWithin("WEEK");
+
+        // Then
+        Match receivedMatch = receivedMatches.get(0);
+        assertThat(receivedMatch).isEqualTo(match);
     }
 }
