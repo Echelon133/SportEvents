@@ -1,5 +1,6 @@
 package ml.echelon133.sportevents.match;
 
+import ml.echelon133.sportevents.exception.ResourceDoesNotExistException;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.hateoas.Resources;
 import org.springframework.http.HttpStatus;
@@ -42,6 +43,12 @@ public class MatchController {
         Resources<MatchResource> resources = new Resources<>(resourceAssembler.toResources(matches));
         resources.add(linkTo(MatchController.class).withRel("matches"));
         return new ResponseEntity<>(resources, HttpStatus.OK);
+    }
+
+    @GetMapping("/{matchId}")
+    public ResponseEntity<MatchResource> getMatch(@PathVariable Long matchId) throws ResourceDoesNotExistException {
+        MatchResource matchResource = resourceAssembler.toResource(matchService.findById(matchId));
+        return new ResponseEntity<>(matchResource, HttpStatus.OK);
     }
 }
 
