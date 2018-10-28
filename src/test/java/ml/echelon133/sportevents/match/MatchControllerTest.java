@@ -165,6 +165,8 @@ public class MatchControllerTest {
         assertThat(json.read("$.content[0].league.name").toString()).isEqualTo(match.getLeague().getName());
         assertThat(json.read("$.content[0].stadium.name").toString()).isEqualTo(match.getStadium().getName());
         assertThat(json.read("$.content[0].links[?(@.rel=='matches')].href").toString()).contains("/api\\/matches");
+        assertThat(json.read("$.content[0].links[?(@.rel=='self')].href").toString())
+                .contains("/api\\/matches\\/" + match.getId());
     }
 
     @Test
@@ -198,6 +200,8 @@ public class MatchControllerTest {
         assertThat(json.read("$.content[0].teamB.name").toString()).isEqualTo(match.getTeamB().getName());
         assertThat(json.read("$.content[0].league.name").toString()).isEqualTo(match.getLeague().getName());
         assertThat(json.read("$.content[0].links[?(@.rel=='matches')].href").toString()).contains("/api\\/matches");
+        assertThat(json.read("$.content[0].links[?(@.rel=='self')].href").toString())
+                .contains("/api\\/matches\\/" + match.getId());
     }
 
     @Test
@@ -230,6 +234,8 @@ public class MatchControllerTest {
         assertThat(json.read("$.content[0].teamB.name").toString()).isEqualTo(match.getTeamB().getName());
         assertThat(json.read("$.content[0].league.name").toString()).isEqualTo(match.getLeague().getName());
         assertThat(json.read("$.content[0].links[?(@.rel=='matches')].href").toString()).contains("/api\\/matches");
+        assertThat(json.read("$.content[0].links[?(@.rel=='self')].href").toString())
+                .contains("/api\\/matches\\/" + match.getId());
     }
 
     @Test
