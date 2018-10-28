@@ -3,6 +3,7 @@ package ml.echelon133.sportevents.match;
 import com.jayway.jsonpath.DocumentContext;
 import com.jayway.jsonpath.JsonPath;
 import ml.echelon133.sportevents.exception.APIExceptionHandler;
+import ml.echelon133.sportevents.exception.ResourceDoesNotExistException;
 import ml.echelon133.sportevents.league.League;
 import ml.echelon133.sportevents.league.LeagueController;
 import ml.echelon133.sportevents.league.LeagueResource;
@@ -30,6 +31,7 @@ import java.util.Date;
 import java.util.List;
 
 import static org.assertj.core.api.AssertionsForClassTypes.assertThat;
+import static org.mockito.ArgumentMatchers.anyLong;
 import static org.springframework.hateoas.mvc.ControllerLinkBuilder.linkTo;
 import static org.springframework.hateoas.mvc.ControllerLinkBuilder.methodOn;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.*;
@@ -109,8 +111,9 @@ public class MatchControllerTest {
                 linkTo(TeamController.class).withRel("teams"),
                 linkTo(methodOn(TeamController.class).getTeam(match.getTeamB().getId())).withSelfRel());
 
-        return new MatchResource(match, teamAResource, teamBResource,
-                                 leagueResource, stadiumResource, linkTo(MatchController.class).withRel("matches"));
+        return new MatchResource(match, teamAResource, teamBResource, leagueResource, stadiumResource,
+                linkTo(MatchController.class).withRel("matches"),
+                linkTo(methodOn(MatchController.class).getMatch(match.getId())).withSelfRel());
     }
 
     @Test
@@ -228,5 +231,49 @@ public class MatchControllerTest {
         assertThat(json.read("$.content[0].teamB.name").toString()).isEqualTo(match.getTeamB().getName());
         assertThat(json.read("$.content[0].league.name").toString()).isEqualTo(match.getLeague().getName());
         assertThat(json.read("$.content[0].links[?(@.rel=='matches')].href").toString()).contains("/api\\/matches");
+    }
+
+    @Test
+    public void getMatchReturnsCorrectResponseWhenResourceDoesNotExist() throws Exception {
+        // Given
+        given(matchService.findById(anyLong())).willThrow(new ResourceDoesNotExistException("Match with this id does not exist"));
+
+        // When
+        MockHttpServletResponse response = mockMvc.perform(get("/api/matches/1")
+                .accept(MediaType.APPLICATION_JSON)).andReturn().getResponse();
+
+        // Then
+        assertThat(response.getStatus()).isEqualTo(HttpStatus.NOT_FOUND.value());
+        assertThat(response.getContentAsString()).contains("Match with this id does not exist");
+    }
+
+    @Test
+    public void getMatchReturnsExistingResourceCorrectly() throws Exception {
+        League league = buildLeague(1L, "Test league", "Test country");
+        Team teamA = buildTeam(15L, "Test TeamA", league);
+        Team teamB = buildTeam(25L, "Test TeamB", league);
+        Match match = buildMatch(7L, teamA, teamB, null, null);
+        MatchResource matchResource = buildMatchResource(match);
+
+        // Given
+        given(matchService.findById(7L)).willReturn(match);
+        given(matchResourceAssembler.toResource(match)).willReturn(matchResource);
+
+        // When
+        MockHttpServletResponse response = mockMvc.perform(get("/api/matches/7")
+                .accept(MediaType.APPLICATION_JSON)).andReturn().getResponse();
+
+        // Then
+        DocumentContext json = JsonPath.parse(response.getContentAsString());
+
+        assertThat(response.getStatus()).isEqualTo(HttpStatus.OK.value());
+        assertThat(json.read("$.links[?(@.rel=='matches')].href").toString()).contains("/api\\/matches");
+        assertThat(json.read("$.links[?(@.rel=='self')].href").toString())
+                .contains("/api\\/matches\\/" + match.getId());
+
+        assertThat(json.read("$.id").toString()).isEqualTo(match.getId().toString());
+        assertThat(json.read("$.status").toString()).isEqualTo(match.getStatus().toString());
+        assertThat(json.read("$.teamA.name").toString()).isEqualTo(match.getTeamA().getName());
+        assertThat(json.read("$.teamB.name").toString()).isEqualTo(match.getTeamB().getName());
     }
 }
