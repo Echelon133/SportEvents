@@ -25,7 +25,6 @@ import org.springframework.mock.web.MockHttpServletResponse;
 import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.test.web.servlet.setup.MockMvcBuilders;
 
-import javax.validation.constraints.Null;
 import java.util.Collections;
 import java.util.Date;
 import java.util.List;
