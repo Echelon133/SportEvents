@@ -12,7 +12,15 @@ public class TeamIdsNotEqualValidator implements ConstraintValidator<TeamIdsNotE
 
     @Override
     public boolean isValid(MatchDto value, ConstraintValidatorContext context) {
-        return !value.getTeamA().equals(value.getTeamB());
+        boolean isValid = false;
+        try {
+            isValid = !value.getTeamA().equals(value.getTeamB());
+        } catch (NullPointerException ex) {
+            isValid = false;
+        } finally {
+            return isValid;
+        }
+
     }
 
     @Override
