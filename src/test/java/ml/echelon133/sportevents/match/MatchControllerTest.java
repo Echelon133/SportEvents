@@ -1,5 +1,6 @@
 package ml.echelon133.sportevents.match;
 
+import com.fasterxml.jackson.databind.ObjectMapper;
 import com.jayway.jsonpath.DocumentContext;
 import com.jayway.jsonpath.JsonPath;
 import ml.echelon133.sportevents.exception.APIExceptionHandler;
@@ -19,18 +20,23 @@ import org.junit.runner.RunWith;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.MockitoJUnitRunner;
+import org.springframework.boot.test.json.JacksonTester;
+import org.springframework.boot.test.json.JsonContent;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.mock.web.MockHttpServletResponse;
 import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.test.web.servlet.setup.MockMvcBuilders;
 
+import java.time.format.DateTimeParseException;
 import java.util.Collections;
 import java.util.Date;
 import java.util.List;
 
 import static org.assertj.core.api.AssertionsForClassTypes.assertThat;
+import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyLong;
+import static org.mockito.ArgumentMatchers.argThat;
 import static org.springframework.hateoas.mvc.ControllerLinkBuilder.linkTo;
 import static org.springframework.hateoas.mvc.ControllerLinkBuilder.methodOn;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.*;
@@ -53,8 +59,12 @@ public class MatchControllerTest {
     @InjectMocks
     private MatchController matchController;
 
+    private JacksonTester<MatchDto> jsonMatchDto;
+
     @Before
     public void setup() {
+        JacksonTester.initFields(this, new ObjectMapper());
+
         mockMvc = MockMvcBuilders.standaloneSetup(matchController).setControllerAdvice(exceptionHandler).build();
     }
 
@@ -272,6 +282,107 @@ public class MatchControllerTest {
         DocumentContext json = JsonPath.parse(response.getContentAsString());
 
         assertThat(response.getStatus()).isEqualTo(HttpStatus.OK.value());
+        assertThat(json.read("$.links[?(@.rel=='matches')].href").toString()).contains("/api\\/matches");
+        assertThat(json.read("$.links[?(@.rel=='self')].href").toString())
+                .contains("/api\\/matches\\/" + match.getId());
+
+        assertThat(json.read("$.id").toString()).isEqualTo(match.getId().toString());
+        assertThat(json.read("$.status").toString()).isEqualTo(match.getStatus().toString());
+        assertThat(json.read("$.teamA.name").toString()).isEqualTo(match.getTeamA().getName());
+        assertThat(json.read("$.teamB.name").toString()).isEqualTo(match.getTeamB().getName());
+    }
+
+    @Test
+    public void createMatchMatchDtoInvalidStartDateResponseIsCorrect() throws Exception {
+        MatchDto matchDto = new MatchDto("2018-99-100 asdf", 1L, 2L);
+
+        JsonContent<MatchDto> matchDtoJsonContent = jsonMatchDto.write(matchDto);
+
+        // Given
+        given(matchService.convertDtoToEntity(any())).willThrow(new DateTimeParseException("Parse error", "asdf", 0));
+
+        // When
+        MockHttpServletResponse response = mockMvc.perform(
+                post("/api/matches")
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(matchDtoJsonContent.getJson())
+                        .accept(MediaType.APPLICATION_JSON)).andReturn().getResponse();
+
+        // Then
+        assertThat(response.getStatus()).isEqualTo(HttpStatus.BAD_REQUEST.value());
+        assertThat(response.getContentAsString()).contains("Date could not be parsed");
+    }
+
+    @Test
+    public void createMatchMatchDtoNullFieldsAreValidated() throws Exception {
+        MatchDto matchDto = new MatchDto(null, null, null);
+
+        JsonContent<MatchDto> matchDtoJsonContent = jsonMatchDto.write(matchDto);
+
+        // When
+        MockHttpServletResponse response = mockMvc.perform(
+                post("/api/matches")
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(matchDtoJsonContent.getJson())
+                        .accept(MediaType.APPLICATION_JSON)).andReturn().getResponse();
+
+        // Then
+        assertThat(response.getStatus()).isEqualTo(HttpStatus.BAD_REQUEST.value());
+        assertThat(response.getContentAsString()).contains("startDate validation error: must not be null");
+        assertThat(response.getContentAsString()).contains("teamA validation error: must not be null");
+        assertThat(response.getContentAsString()).contains("teamB validation error: must not be null");
+    }
+
+    @Test
+    public void createMatchMatchDtoTeamIdsAreValidated() throws Exception {
+        MatchDto matchDto = new MatchDto("2018-12-31 20:00", 1L, 1L);
+
+        JsonContent<MatchDto> matchDtoJsonContent = jsonMatchDto.write(matchDto);
+
+        // When
+        MockHttpServletResponse response = mockMvc.perform(
+                post("/api/matches")
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(matchDtoJsonContent.getJson())
+                        .accept(MediaType.APPLICATION_JSON)).andReturn().getResponse();
+
+        // Then
+        assertThat(response.getStatus()).isEqualTo(HttpStatus.BAD_REQUEST.value());
+        assertThat(response.getContentAsString()).contains("matchDto validation error: Team IDs cannot be equal");
+    }
+
+    @Test
+    public void createMatchReturnsCorrectResponseOnSuccess() throws Exception {
+        League league = buildLeague(1L, "League", "Country");
+        Team teamA = buildTeam(1L, "First team", league);
+        Team teamB = buildTeam(3L, "Second team", league);
+        Match match = buildMatch(7L, teamA, teamB, null, null);
+        MatchResource matchResource = buildMatchResource(match);
+
+        MatchDto matchDto = new MatchDto("2018-12-01 16:00", 1L, 3L);
+        JsonContent<MatchDto> matchDtoJsonContent = jsonMatchDto.write(matchDto);
+
+        // Given
+        given(matchService.convertDtoToEntity(
+                argThat(a -> a.getStartDate().equals(matchDto.getStartDate())
+                        &&
+                        a.getTeamA().equals(match.getTeamA().getId())
+                        &&
+                        a.getTeamB().equals(match.getTeamB().getId())))).willReturn(match);
+        given(matchService.save(match)).willReturn(match);
+        given(matchResourceAssembler.toResource(match)).willReturn(matchResource);
+
+        // When
+        MockHttpServletResponse response = mockMvc.perform(
+                post("/api/matches")
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(matchDtoJsonContent.getJson())
+                        .accept(MediaType.APPLICATION_JSON)).andReturn().getResponse();
+
+        // Then
+        DocumentContext json = JsonPath.parse(response.getContentAsString());
+
+        assertThat(response.getStatus()).isEqualTo(HttpStatus.CREATED.value());
         assertThat(json.read("$.links[?(@.rel=='matches')].href").toString()).contains("/api\\/matches");
         assertThat(json.read("$.links[?(@.rel=='self')].href").toString())
                 .contains("/api\\/matches\\/" + match.getId());
