@@ -1,5 +1,6 @@
 package ml.echelon133.sportevents.league;
 
+import ml.echelon133.sportevents.exception.ResourceDoesNotExistException;
 import org.springframework.hateoas.mvc.ResourceAssemblerSupport;
 import org.springframework.stereotype.Component;
 
@@ -20,7 +21,7 @@ public class LeagueResourceAssembler extends ResourceAssemblerSupport<League, Le
             resource = new LeagueResource(entity,
                     linkTo(LeagueController.class).withRel("leagues"),
                     linkTo(methodOn(LeagueController.class).getLeague(entity.getId())).withSelfRel());
-        } catch (Exception ex) {
+        } catch (ResourceDoesNotExistException ex) {
             // getLeague throws Exception only if resource (League) does not exist
             // getLeague(Long id) is used here only to generate a link to a resource (methodOn creates a proxy)
             // see here: https://docs.spring.io/spring-hateoas/docs/current/api/org/springframework/hateoas/mvc/ControllerLinkBuilder.html#methodOn-java.lang.Class-java.lang.Object...-
