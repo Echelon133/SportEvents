@@ -1,12 +1,16 @@
 package ml.echelon133.sportevents.match;
 
+import ml.echelon133.sportevents.exception.FailedValidationException;
 import ml.echelon133.sportevents.exception.ResourceDoesNotExistException;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.hateoas.Resources;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.validation.BindingResult;
 import org.springframework.web.bind.annotation.*;
 
+import javax.validation.Valid;
+import java.time.format.DateTimeParseException;
 import java.util.List;
 
 import static org.springframework.hateoas.mvc.ControllerLinkBuilder.linkTo;
@@ -49,6 +53,20 @@ public class MatchController {
     public ResponseEntity<MatchResource> getMatch(@PathVariable Long matchId) throws ResourceDoesNotExistException {
         MatchResource matchResource = resourceAssembler.toResource(matchService.findById(matchId));
         return new ResponseEntity<>(matchResource, HttpStatus.OK);
+    }
+
+    @PostMapping
+    public ResponseEntity<MatchResource> createMatch(@Valid @RequestBody MatchDto matchDto, BindingResult result)
+            throws ResourceDoesNotExistException, FailedValidationException, DateTimeParseException {
+
+        if (result.hasErrors()) {
+            throw new FailedValidationException(result.getFieldErrors(), result.getGlobalErrors());
+        }
+
+        Match match = matchService.convertDtoToEntity(matchDto);
+        Match savedMatch = matchService.save(match);
+        MatchResource resource = resourceAssembler.toResource(savedMatch);
+        return new ResponseEntity<>(resource, HttpStatus.CREATED);
     }
 }
 
