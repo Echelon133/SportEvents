@@ -37,7 +37,7 @@ public class LeagueController {
     }
 
     @GetMapping("/{leagueId}")
-    public ResponseEntity<LeagueResource> getLeague(@PathVariable Long leagueId) throws Exception {
+    public ResponseEntity<LeagueResource> getLeague(@PathVariable Long leagueId) throws ResourceDoesNotExistException {
         LeagueResource leagueResource = resourceAssembler.toResource(leagueService.findById(leagueId));
         return new ResponseEntity<>(leagueResource, HttpStatus.OK);
     }

@@ -47,7 +47,7 @@ public class TeamController {
     }
 
     @GetMapping("/{teamId}")
-    public ResponseEntity<TeamResource> getTeam(@PathVariable Long teamId) throws Exception {
+    public ResponseEntity<TeamResource> getTeam(@PathVariable Long teamId) throws ResourceDoesNotExistException {
         TeamResource teamResource = resourceAssembler.toResource(teamService.findById(teamId));
         return new ResponseEntity<>(teamResource, HttpStatus.OK);
     }
