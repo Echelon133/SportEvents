@@ -516,4 +516,20 @@ public class MatchControllerTest {
         assertThat(json.read("$.teamA.name").toString()).isEqualTo(changedMatch.getTeamA().getName());
         assertThat(json.read("$.teamB.name").toString()).isEqualTo(changedMatch.getTeamB().getName());
     }
+
+    @Test
+    public void deleteMatchReturnsCorrectResponseAfterDeletingResource() throws Exception {
+        // Given
+        given(matchService.deleteById(any())).willReturn(true);
+
+        // When
+        MockHttpServletResponse response = mockMvc.perform(
+                delete("/api/matches/1")
+                        .accept(MediaType.APPLICATION_JSON)
+        ).andReturn().getResponse();
+
+        // Then
+        assertThat(response.getStatus()).isEqualTo(HttpStatus.OK.value());
+        assertThat(response.getContentAsString()).isEqualTo("{\"deleted\":true}");
+    }
 }
