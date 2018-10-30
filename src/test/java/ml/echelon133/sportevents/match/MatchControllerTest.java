@@ -392,4 +392,128 @@ public class MatchControllerTest {
         assertThat(json.read("$.teamA.name").toString()).isEqualTo(match.getTeamA().getName());
         assertThat(json.read("$.teamB.name").toString()).isEqualTo(match.getTeamB().getName());
     }
+
+    @Test
+    public void replaceMatchReturnsCorrectResponseIfMatchDoesNotExist() throws Exception {
+        MatchDto matchDto = new MatchDto("2018-99-100 asdf", 1L, 2L);
+        JsonContent<MatchDto> matchDtoJsonContent = jsonMatchDto.write(matchDto);
+
+        // Given
+        given(matchService.findById(1L)).willThrow(new ResourceDoesNotExistException("Match with this id does not exist"));
+
+        // When
+        MockHttpServletResponse response = mockMvc.perform(
+                put("/api/matches/1")
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(matchDtoJsonContent.getJson())
+                        .accept(MediaType.APPLICATION_JSON)).andReturn().getResponse();
+
+        // Then
+        assertThat(response.getStatus()).isEqualTo(HttpStatus.NOT_FOUND.value());
+        assertThat(response.getContentAsString()).contains("Match with this id does not exist");
+    }
+
+    @Test
+    public void replaceMatchMatchDtoInvalidStartDateResponseIsCorrect() throws Exception {
+        MatchDto matchDto = new MatchDto("2018-99-100 asdf", 1L, 2L);
+
+        JsonContent<MatchDto> matchDtoJsonContent = jsonMatchDto.write(matchDto);
+
+        // Given
+        given(matchService.convertDtoToEntity(any())).willThrow(new DateTimeParseException("Parse error", "asdf", 0));
+
+        // When
+        MockHttpServletResponse response = mockMvc.perform(
+                put("/api/matches/1")
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(matchDtoJsonContent.getJson())
+                        .accept(MediaType.APPLICATION_JSON)).andReturn().getResponse();
+
+        // Then
+        assertThat(response.getStatus()).isEqualTo(HttpStatus.BAD_REQUEST.value());
+        assertThat(response.getContentAsString()).contains("Date could not be parsed");
+    }
+
+    @Test
+    public void replaceMatchMatchDtoNullFieldsAreValidated() throws Exception {
+        MatchDto matchDto = new MatchDto(null, null, null);
+
+        JsonContent<MatchDto> matchDtoJsonContent = jsonMatchDto.write(matchDto);
+
+        // When
+        MockHttpServletResponse response = mockMvc.perform(
+                put("/api/matches/1")
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(matchDtoJsonContent.getJson())
+                        .accept(MediaType.APPLICATION_JSON)).andReturn().getResponse();
+
+        // Then
+        assertThat(response.getStatus()).isEqualTo(HttpStatus.BAD_REQUEST.value());
+        assertThat(response.getContentAsString()).contains("startDate validation error: must not be null");
+        assertThat(response.getContentAsString()).contains("teamA validation error: must not be null");
+        assertThat(response.getContentAsString()).contains("teamB validation error: must not be null");
+    }
+
+    @Test
+    public void replaceMatchMatchDtoTeamIdsAreValidated() throws Exception {
+        MatchDto matchDto = new MatchDto("2018-12-31 20:00", 1L, 1L);
+
+        JsonContent<MatchDto> matchDtoJsonContent = jsonMatchDto.write(matchDto);
+
+        // When
+        MockHttpServletResponse response = mockMvc.perform(
+                put("/api/matches/1")
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(matchDtoJsonContent.getJson())
+                        .accept(MediaType.APPLICATION_JSON)).andReturn().getResponse();
+
+        // Then
+        assertThat(response.getStatus()).isEqualTo(HttpStatus.BAD_REQUEST.value());
+        assertThat(response.getContentAsString()).contains("matchDto validation error: Team IDs cannot be equal");
+    }
+
+    @Test
+    public void replaceMatchReturnsCorrectResponseOnSuccess() throws Exception {
+        League league = buildLeague(1L, "League", "Country");
+        Team teamA = buildTeam(1L, "First team", league);
+        Team teamB = buildTeam(3L, "Second team", league);
+        Team teamC = buildTeam(5L, "Third team", league);
+        Match match = buildMatch(7L, teamA, teamB, null, null);
+        Match changedMatch = buildMatch(7L, teamA, teamC, null, null);
+        MatchResource changedMatchResource = buildMatchResource(changedMatch);
+
+        MatchDto matchDto = new MatchDto("2018-12-01 16:00", 1L, 5L);
+        JsonContent<MatchDto> matchDtoJsonContent = jsonMatchDto.write(matchDto);
+
+        // Given
+        given(matchService.findById(7L)).willReturn(match);
+        given(matchService.convertDtoToEntity(
+                argThat(a -> a.getStartDate().equals(matchDto.getStartDate())
+                        &&
+                        a.getTeamA().equals(changedMatch.getTeamA().getId())
+                        &&
+                        a.getTeamB().equals(changedMatch.getTeamB().getId())))).willReturn(changedMatch);
+        given(matchService.save(changedMatch)).willReturn(changedMatch);
+        given(matchResourceAssembler.toResource(changedMatch)).willReturn(changedMatchResource);
+
+        // When
+        MockHttpServletResponse response = mockMvc.perform(
+                put("/api/matches/7")
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(matchDtoJsonContent.getJson())
+                        .accept(MediaType.APPLICATION_JSON)).andReturn().getResponse();
+
+        // Then
+        DocumentContext json = JsonPath.parse(response.getContentAsString());
+
+        assertThat(response.getStatus()).isEqualTo(HttpStatus.OK.value());
+        assertThat(json.read("$.links[?(@.rel=='matches')].href").toString()).contains("/api\\/matches");
+        assertThat(json.read("$.links[?(@.rel=='self')].href").toString())
+                .contains("/api\\/matches\\/" + match.getId());
+
+        assertThat(json.read("$.id").toString()).isEqualTo(changedMatch.getId().toString());
+        assertThat(json.read("$.status").toString()).isEqualTo(changedMatch.getStatus().toString());
+        assertThat(json.read("$.teamA.name").toString()).isEqualTo(changedMatch.getTeamA().getName());
+        assertThat(json.read("$.teamB.name").toString()).isEqualTo(changedMatch.getTeamB().getName());
+    }
 }
