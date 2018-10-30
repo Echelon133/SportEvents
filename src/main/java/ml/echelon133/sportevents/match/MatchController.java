@@ -68,6 +68,26 @@ public class MatchController {
         MatchResource resource = resourceAssembler.toResource(savedMatch);
         return new ResponseEntity<>(resource, HttpStatus.CREATED);
     }
+
+    @PutMapping("/{matchId}")
+    public ResponseEntity<MatchResource> replaceMatch(@PathVariable Long matchId,
+                                                      @Valid @RequestBody MatchDto matchDto,
+                                                      BindingResult result)
+            throws FailedValidationException, ResourceDoesNotExistException, DateTimeParseException {
+
+        if (result.hasErrors()) {
+            throw new FailedValidationException(result.getFieldErrors(), result.getGlobalErrors());
+        }
+
+        Match matchToReplace = matchService.findById(matchId);
+
+        Match replacementEntity = matchService.convertDtoToEntity(matchDto);
+        replacementEntity.setId(matchToReplace.getId());
+
+        Match savedMatch = matchService.save(replacementEntity);
+        MatchResource matchResource = resourceAssembler.toResource(savedMatch);
+        return new ResponseEntity<>(matchResource, HttpStatus.OK);
+    }
 }
 
 
