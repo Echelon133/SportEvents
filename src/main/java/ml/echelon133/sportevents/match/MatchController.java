@@ -11,7 +11,9 @@ import org.springframework.web.bind.annotation.*;
 
 import javax.validation.Valid;
 import java.time.format.DateTimeParseException;
+import java.util.Collections;
 import java.util.List;
+import java.util.Map;
 
 import static org.springframework.hateoas.mvc.ControllerLinkBuilder.linkTo;
 
@@ -87,6 +89,13 @@ public class MatchController {
         Match savedMatch = matchService.save(replacementEntity);
         MatchResource matchResource = resourceAssembler.toResource(savedMatch);
         return new ResponseEntity<>(matchResource, HttpStatus.OK);
+    }
+
+    @DeleteMapping("/{matchId}")
+    public ResponseEntity<Map> deleteMatch(@PathVariable Long matchId) {
+        boolean deleted = matchService.deleteById(matchId);
+        Map<String, Boolean> response = Collections.singletonMap("deleted", deleted);
+        return new ResponseEntity<>(response, HttpStatus.OK);
     }
 }
 
