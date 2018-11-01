@@ -86,9 +86,9 @@
   "startDate" : "2018-12-01 20:00",
   "teamA" : 1,
   "teamB" : 5,
-  "league" : 3
+  "league" : 3,
   "stadium" : 7
-}  
+}
 ``` 
 
 
