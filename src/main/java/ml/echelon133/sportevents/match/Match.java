@@ -9,6 +9,7 @@ import ml.echelon133.sportevents.team.Team;
 import javax.persistence.*;
 import java.util.ArrayList;
 import java.util.Date;
+import java.util.List;
 
 @Entity
 @Table(name = "football_match")
