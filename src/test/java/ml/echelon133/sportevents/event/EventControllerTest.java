@@ -1,8 +1,13 @@
 package ml.echelon133.sportevents.event;
 
+import com.fasterxml.jackson.databind.ObjectMapper;
 import com.jayway.jsonpath.DocumentContext;
 import com.jayway.jsonpath.JsonPath;
 import ml.echelon133.sportevents.event.types.*;
+import ml.echelon133.sportevents.event.types.dto.CardEventDto;
+import ml.echelon133.sportevents.event.types.dto.ManagingEventDto;
+import ml.echelon133.sportevents.event.types.dto.MatchEventDto;
+import ml.echelon133.sportevents.exception.APIExceptionHandler;
 import ml.echelon133.sportevents.league.League;
 import ml.echelon133.sportevents.match.Match;
 import ml.echelon133.sportevents.match.MatchService;
@@ -14,7 +19,11 @@ import org.junit.runner.RunWith;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.MockitoJUnitRunner;
+import org.springframework.boot.test.json.JacksonTester;
+import org.springframework.context.annotation.Bean;
+import org.springframework.context.annotation.Configuration;
 import org.springframework.http.HttpStatus;
+import org.springframework.http.converter.json.MappingJackson2HttpMessageConverter;
 import org.springframework.mock.web.MockHttpServletResponse;
 import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.test.web.servlet.setup.MockMvcBuilders;
@@ -30,7 +39,20 @@ import static org.springframework.test.web.servlet.request.MockMvcRequestBuilder
 @RunWith(MockitoJUnitRunner.class)
 public class EventControllerTest {
 
+    // We need this to mirror the deserialization functionality from the actual application
+    @Configuration
+    static class ContextConfig {
+        @Bean
+        public static ObjectMapper objectMapper() {
+            ObjectMapper mapper = new ObjectMapper();
+            mapper.addMixIn(MatchEventDto.class, EventMixIn.class);
+            return mapper;
+        }
+    }
+
     private MockMvc mockMvc;
+
+    private MappingJackson2HttpMessageConverter converter;
 
     @Mock
     private MatchService matchService;
@@ -38,9 +60,26 @@ public class EventControllerTest {
     @InjectMocks
     private EventController eventController;
 
+    @InjectMocks
+    private APIExceptionHandler exceptionHandler;
+
+    private JacksonTester<MatchEventDto> jsonMatchEventDto;
+
     @Before
     public void setup() {
-        mockMvc = MockMvcBuilders.standaloneSetup(eventController).build();
+        // Tests use default ObjectMapper bean. We need to build MockMvc instance with our own message converter
+        // to use our custom ObjectMapper in tests
+        converter = new MappingJackson2HttpMessageConverter();
+        converter.setObjectMapper(ContextConfig.objectMapper());
+
+        // Use our custom mapper that has EventMixIn added to its config
+        JacksonTester.initFields(this, ContextConfig.objectMapper());
+
+        mockMvc = MockMvcBuilders
+                .standaloneSetup(eventController)
+                .setControllerAdvice(exceptionHandler)
+                .setMessageConverters(converter)
+                .build();
     }
 
     private Match buildMatch(Long id, Team teamA, Team teamB, League league, Stadium stadium) {
