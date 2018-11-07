@@ -1,10 +1,13 @@
 package ml.echelon133.sportevents.match;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
+import ml.echelon133.sportevents.event.types.AbstractMatchEvent;
 import ml.echelon133.sportevents.league.League;
 import ml.echelon133.sportevents.stadium.Stadium;
 import ml.echelon133.sportevents.team.Team;
 
 import javax.persistence.*;
+import java.util.ArrayList;
 import java.util.Date;
 
 @Entity
@@ -42,12 +45,17 @@ public class Match {
     @JoinColumn(name="stadium_id")
     private Stadium stadium;
 
+    @OneToMany(mappedBy = "match", cascade = CascadeType.MERGE)
+    @JsonIgnore
+    private List<AbstractMatchEvent> events;
+
     @Embedded
     private ScoreInfo result;
 
     public Match() {
         this.result = new ScoreInfo();
         this.status = Status.NOT_STARTED;
+        this.events = new ArrayList<>();
     }
 
     public Match(Date startDate, Team teamA, Team teamB) {
@@ -125,5 +133,22 @@ public class Match {
 
     public Status getStatus() {
         return status;
+    }
+
+    public void setStatus(Status status) {
+        this.status = status;
+    }
+
+    public List<AbstractMatchEvent> getEvents() {
+        return events;
+    }
+
+    public void setEvents(List<AbstractMatchEvent> events) {
+        this.events = events;
+    }
+
+    public void addEvent(AbstractMatchEvent event) {
+        event.setMatch(this);
+        this.events.add(event);
     }
 }
