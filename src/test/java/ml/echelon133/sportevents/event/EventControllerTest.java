@@ -180,4 +180,43 @@ public class EventControllerTest {
         assertThat(response.getContentAsString()).contains("time validation error: must not be null");
         assertThat(response.getContentAsString()).contains("message validation error: must not be null");
     }
+
+    @Test
+    public void receiveEventCardEventDtoNullFieldsAreValidated() throws Exception {
+        MatchEventDto matchEventDto = new CardEventDto(null, null, "CARD", null, null);
+
+        JsonContent<MatchEventDto> jsonContent = jsonMatchEventDto.write(matchEventDto);
+
+        // When
+        MockHttpServletResponse response = mockMvc.perform(
+                post("/api/matches/1/events")
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(jsonContent.getJson())
+                        .accept(MediaType.APPLICATION_JSON)).andReturn().getResponse();
+
+        // Then
+        assertThat(response.getStatus()).isEqualTo(HttpStatus.BAD_REQUEST.value());
+        assertThat(response.getContentAsString()).contains("time validation error: must not be null");
+        assertThat(response.getContentAsString()).contains("message validation error: must not be null");
+        assertThat(response.getContentAsString()).contains("player validation error: must not be null");
+        assertThat(response.getContentAsString()).contains("color validation error: invalid card color");
+    }
+
+    @Test
+    public void receiveEventCardEventDtoCardColorIsValidated() throws Exception {
+        MatchEventDto matchEventDto = new CardEventDto(10L, "test", "CARD", "test", "ASDF");
+
+        JsonContent<MatchEventDto> jsonContent = jsonMatchEventDto.write(matchEventDto);
+
+        // When
+        MockHttpServletResponse response = mockMvc.perform(
+                post("/api/matches/1/events")
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(jsonContent.getJson())
+                        .accept(MediaType.APPLICATION_JSON)).andReturn().getResponse();
+
+        // Then
+        assertThat(response.getStatus()).isEqualTo(HttpStatus.BAD_REQUEST.value());
+        assertThat(response.getContentAsString()).contains("color validation error: invalid card color");
+    }
 }
