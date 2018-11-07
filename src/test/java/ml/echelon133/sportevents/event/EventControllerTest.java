@@ -20,9 +20,11 @@ import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.MockitoJUnitRunner;
 import org.springframework.boot.test.json.JacksonTester;
+import org.springframework.boot.test.json.JsonContent;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.http.HttpStatus;
+import org.springframework.http.MediaType;
 import org.springframework.http.converter.json.MappingJackson2HttpMessageConverter;
 import org.springframework.mock.web.MockHttpServletResponse;
 import org.springframework.test.web.servlet.MockMvc;
@@ -35,6 +37,7 @@ import java.util.List;
 import static org.assertj.core.api.AssertionsForClassTypes.assertThat;
 import static org.mockito.BDDMockito.given;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
 
 @RunWith(MockitoJUnitRunner.class)
 public class EventControllerTest {
@@ -157,5 +160,24 @@ public class EventControllerTest {
         assertThat(json.read("$[3].type").toString()).isEqualTo(event4.getType().toString());
         assertThat(json.read("$[3].cardedPlayer").toString()).isEqualTo(event4.getCardedPlayer());
         assertThat(json.read("$[3].cardColor").toString()).isEqualTo(event4.getCardColor().toString());
+    }
+
+    @Test
+    public void receiveEventManagingEventDtoNullFieldsAreValidated() throws Exception {
+        MatchEventDto matchEventDto = new ManagingEventDto(null, null, "START_FIRST_HALF");
+
+        JsonContent<MatchEventDto> jsonContent = jsonMatchEventDto.write(matchEventDto);
+
+        // When
+        MockHttpServletResponse response = mockMvc.perform(
+                post("/api/matches/1/events")
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(jsonContent.getJson())
+                        .accept(MediaType.APPLICATION_JSON)).andReturn().getResponse();
+
+        // Then
+        assertThat(response.getStatus()).isEqualTo(HttpStatus.BAD_REQUEST.value());
+        assertThat(response.getContentAsString()).contains("time validation error: must not be null");
+        assertThat(response.getContentAsString()).contains("message validation error: must not be null");
     }
 }
