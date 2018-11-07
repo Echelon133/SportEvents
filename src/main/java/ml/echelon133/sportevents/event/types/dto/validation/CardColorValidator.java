@@ -9,12 +9,18 @@ public class CardColorValidator implements ConstraintValidator<ValidCardColor, S
 
     @Override
     public boolean isValid(String value, ConstraintValidatorContext context) {
+        boolean isValid = false;
         try {
-            CardEvent.CardColor.valueOf(value);
+            if (value != null) {
+                CardEvent.CardColor.valueOf(value);
+                isValid = true;
+            } else {
+                isValid = false;
+            }
         } catch (IllegalArgumentException ex) {
-            return false;
+            isValid = false;
         }
-        return true;
+        return isValid;
     }
 
     @Override
