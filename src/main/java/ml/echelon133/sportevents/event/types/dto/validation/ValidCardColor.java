@@ -12,7 +12,7 @@ import static java.lang.annotation.RetentionPolicy.RUNTIME;
 @Retention(RUNTIME)
 @Constraint(validatedBy = CardColorValidator.class)
 public @interface ValidCardColor {
-    String message() default "Invalid card color";
+    String message() default "invalid card color";
     Class<?>[] groups() default { };
     Class<? extends Payload>[] payload() default { };
 }
