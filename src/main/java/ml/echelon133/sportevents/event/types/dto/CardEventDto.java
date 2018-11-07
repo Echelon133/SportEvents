@@ -9,7 +9,6 @@ public class CardEventDto extends MatchEventDto {
     @NotNull
     private String player;
 
-    @NotNull
     @ValidCardColor
     private String color;
 
