@@ -1,6 +1,11 @@
 package ml.echelon133.sportevents.match;
 
+import javax.persistence.CascadeType;
 import javax.persistence.Embeddable;
+import javax.persistence.JoinColumn;
+import javax.persistence.OneToMany;
+import java.util.ArrayList;
+import java.util.List;
 
 @Embeddable
 public class ScoreInfo {
@@ -9,18 +14,30 @@ public class ScoreInfo {
     private Long teamAPenalties;
     private Long teamBPenalties;
 
+    @OneToMany(cascade = CascadeType.ALL, orphanRemoval = true)
+    @JoinColumn(name = "teamAGoalInfo_id")
+    private List<GoalInfo> teamAGoalInfo;
+
+    @OneToMany(cascade = CascadeType.ALL, orphanRemoval = true)
+    @JoinColumn(name = "teamBGoalInfo_id")
+    private List<GoalInfo> teamBGoalInfo;
+
     public ScoreInfo() {
         teamAGoals = 0L;
         teamBGoals = 0L;
         teamAPenalties = 0L;
         teamBPenalties = 0L;
+        teamAGoalInfo = new ArrayList<>();
+        teamBGoalInfo = new ArrayList<>();
     }
 
-    public void addGoalTeamA() {
+    public void addGoalTeamA(Long minute, String scorerName) {
+        teamAGoalInfo.add(new GoalInfo(minute, scorerName));
         teamAGoals += 1;
     }
 
-    public void addGoalTeamB() {
+    public void addGoalTeamB(Long minute, String scorerName) {
+        teamBGoalInfo.add(new GoalInfo(minute, scorerName));
         teamBGoals += 1;
     }
 
@@ -62,5 +79,21 @@ public class ScoreInfo {
 
     public void setTeamBPenalties(Long teamBPenalties) {
         this.teamBPenalties = teamBPenalties;
+    }
+
+    public List<GoalInfo> getTeamAGoalInfo() {
+        return teamAGoalInfo;
+    }
+
+    public void setTeamAGoalInfo(List<GoalInfo> teamAGoalInfo) {
+        this.teamAGoalInfo = teamAGoalInfo;
+    }
+
+    public List<GoalInfo> getTeamBGoalInfo() {
+        return teamBGoalInfo;
+    }
+
+    public void setTeamBGoalInfo(List<GoalInfo> teamBGoalInfo) {
+        this.teamBGoalInfo = teamBGoalInfo;
     }
 }
