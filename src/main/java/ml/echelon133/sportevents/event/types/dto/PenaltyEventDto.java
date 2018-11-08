@@ -1,7 +1,10 @@
 package ml.echelon133.sportevents.event.types.dto;
 
+import javax.validation.constraints.NotNull;
+
 public class PenaltyEventDto extends MatchEventDto {
 
+    @NotNull
     private Long teamId;
 
     public PenaltyEventDto() {}
