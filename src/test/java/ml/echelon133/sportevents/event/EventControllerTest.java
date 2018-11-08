@@ -277,4 +277,25 @@ public class EventControllerTest {
         assertThat(response.getContentAsString()).contains("time validation error: must not be null");
         assertThat(response.getContentAsString()).contains("message validation error: must not be null");
     }
+
+    @Test
+    public void receiveEventSubstitutionEventDtoNullFieldsAreValidated() throws Exception {
+        MatchEventDto matchEventDto = new SubstitutionEventDto(null, null, "SUBSTITUTION", null, null);
+
+        JsonContent<MatchEventDto> jsonContent = jsonMatchEventDto.write(matchEventDto);
+
+        // When
+        MockHttpServletResponse response = mockMvc.perform(
+                post("/api/matches/1/events")
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(jsonContent.getJson())
+                        .accept(MediaType.APPLICATION_JSON)).andReturn().getResponse();
+
+        // Then
+        assertThat(response.getStatus()).isEqualTo(HttpStatus.BAD_REQUEST.value());
+        assertThat(response.getContentAsString()).contains("time validation error: must not be null");
+        assertThat(response.getContentAsString()).contains("message validation error: must not be null");
+        assertThat(response.getContentAsString()).contains("playerIn validation error: must not be null");
+        assertThat(response.getContentAsString()).contains("playerOut validation error: must not be null");
+    }
 }
