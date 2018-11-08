@@ -5,6 +5,7 @@ import com.jayway.jsonpath.DocumentContext;
 import com.jayway.jsonpath.JsonPath;
 import ml.echelon133.sportevents.event.types.*;
 import ml.echelon133.sportevents.event.types.dto.CardEventDto;
+import ml.echelon133.sportevents.event.types.dto.GoalEventDto;
 import ml.echelon133.sportevents.event.types.dto.ManagingEventDto;
 import ml.echelon133.sportevents.event.types.dto.MatchEventDto;
 import ml.echelon133.sportevents.exception.APIExceptionHandler;
@@ -218,5 +219,26 @@ public class EventControllerTest {
         // Then
         assertThat(response.getStatus()).isEqualTo(HttpStatus.BAD_REQUEST.value());
         assertThat(response.getContentAsString()).contains("color validation error: invalid card color");
+    }
+
+    @Test
+    public void receiveEventGoalEventDtoNullFieldsAreValidated() throws Exception {
+        MatchEventDto matchEventDto = new GoalEventDto(null, null, "GOAL", null, null);
+
+        JsonContent<MatchEventDto> jsonContent = jsonMatchEventDto.write(matchEventDto);
+
+        // When
+        MockHttpServletResponse response = mockMvc.perform(
+                post("/api/matches/1/events")
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(jsonContent.getJson())
+                        .accept(MediaType.APPLICATION_JSON)).andReturn().getResponse();
+
+        // Then
+        assertThat(response.getStatus()).isEqualTo(HttpStatus.BAD_REQUEST.value());
+        assertThat(response.getContentAsString()).contains("time validation error: must not be null");
+        assertThat(response.getContentAsString()).contains("message validation error: must not be null");
+        assertThat(response.getContentAsString()).contains("teamId validation error: must not be null");
+        assertThat(response.getContentAsString()).contains("scorerName validation error: must not be null");
     }
 }
