@@ -6,6 +6,7 @@ import com.jayway.jsonpath.JsonPath;
 import ml.echelon133.sportevents.event.types.*;
 import ml.echelon133.sportevents.event.types.dto.*;
 import ml.echelon133.sportevents.exception.APIExceptionHandler;
+import ml.echelon133.sportevents.exception.ResourceDoesNotExistException;
 import ml.echelon133.sportevents.league.League;
 import ml.echelon133.sportevents.match.Match;
 import ml.echelon133.sportevents.match.MatchService;
@@ -297,5 +298,26 @@ public class EventControllerTest {
         assertThat(response.getContentAsString()).contains("message validation error: must not be null");
         assertThat(response.getContentAsString()).contains("playerIn validation error: must not be null");
         assertThat(response.getContentAsString()).contains("playerOut validation error: must not be null");
+    }
+
+    @Test
+    public void receiveEventReturnsCorrectResponseWhenResourceDoesNotExist() throws Exception {
+        MatchEventDto matchEventDto = new PenaltyEventDto(10L, "test", "PENALTY", 20L);
+
+        JsonContent<MatchEventDto> jsonContent = jsonMatchEventDto.write(matchEventDto);
+
+        // Given
+        given(matchService.findById(1L)).willThrow(new ResourceDoesNotExistException("Match with this id does not exist"));
+
+        // When
+        MockHttpServletResponse response = mockMvc.perform(
+                post("/api/matches/1/events")
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(jsonContent.getJson())
+                        .accept(MediaType.APPLICATION_JSON)).andReturn().getResponse();
+
+        // Then
+        assertThat(response.getStatus()).isEqualTo(HttpStatus.NOT_FOUND.value());
+        assertThat(response.getContentAsString()).contains("Match with this id does not exist");
     }
 }
