@@ -3,6 +3,7 @@ package ml.echelon133.sportevents.event;
 import ml.echelon133.sportevents.event.types.AbstractMatchEvent;
 import ml.echelon133.sportevents.event.types.dto.MatchEventDto;
 import ml.echelon133.sportevents.exception.FailedValidationException;
+import ml.echelon133.sportevents.exception.ResourceDoesNotExistException;
 import ml.echelon133.sportevents.match.Match;
 import ml.echelon133.sportevents.match.MatchService;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -26,17 +27,19 @@ public class EventController {
     }
 
     @GetMapping("/events")
-    public ResponseEntity<List<AbstractMatchEvent>> getEvents(@PathVariable Long matchId) throws Exception {
+    public ResponseEntity<List<AbstractMatchEvent>> getEvents(@PathVariable Long matchId) throws ResourceDoesNotExistException {
         Match match = matchService.findById(matchId);
         return new ResponseEntity<>(match.getEvents(), HttpStatus.OK);
     }
 
     @PostMapping("/events")
     public void receiveEvent(@PathVariable Long matchId, @Valid @RequestBody MatchEventDto eventDto, BindingResult result)
-            throws FailedValidationException{
+            throws FailedValidationException, ResourceDoesNotExistException {
 
         if (result.hasErrors()) {
             throw new FailedValidationException(result.getFieldErrors());
         }
+
+        Match match = matchService.findById(matchId);
     }
 }
