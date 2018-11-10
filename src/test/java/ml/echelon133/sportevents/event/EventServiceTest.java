@@ -33,6 +33,6 @@ public class EventServiceTest {
                 AbstractMatchEvent.EventType.START_FIRST_HALF, match);
 
         // When
-        eventService.processEvent(event, match);
+        eventService.processEvent(event);
     }
 }
