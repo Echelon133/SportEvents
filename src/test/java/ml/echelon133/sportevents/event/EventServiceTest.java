@@ -124,6 +124,16 @@ public class EventServiceTest {
         assertThat(substitutionEvent.getPlayerOut()).isEqualTo(matchEventDto.getPlayerOut());
     }
 
+    @Test(expected = ProcessedEventRejectedException.class)
+    public void convertEventDtoToEntityFailsWhenGoalEventDtoHasInvalidTeamId() throws Exception {
+        Match match = getTestMatch();
+        GoalEventDto matchEventDto = new GoalEventDto(10L, "Test message", "GOAL",
+                6L, "Player test");
+
+        // When
+        GoalEvent goalEvent = (GoalEvent)eventService.convertEventDtoToEntity(matchEventDto, match);
+    }
+
     @Test
     public void convertEventDtoToEntityConvertsGoalEventDtoToCorrectEntity() throws Exception {
         Match match = getTestMatch();
@@ -141,16 +151,6 @@ public class EventServiceTest {
         assertThat(goalEvent.getMatch()).isEqualTo(match);
         assertThat(goalEvent.getTeamScoring()).isEqualTo(match.getTeamA());
         assertThat(goalEvent.getPlayerScoring()).isEqualTo(matchEventDto.getScorerName());
-    }
-
-    @Test(expected = ProcessedEventRejectedException.class)
-    public void convertEventDtoToEntityFailsWhenGoalEventDtoHasInvalidTeamId() throws Exception {
-        Match match = getTestMatch();
-        GoalEventDto matchEventDto = new GoalEventDto(10L, "Test message", "GOAL",
-                                             6L, "Player test");
-
-        // When
-        GoalEvent goalEvent = (GoalEvent)eventService.convertEventDtoToEntity(matchEventDto, match);
     }
 
     @Test
