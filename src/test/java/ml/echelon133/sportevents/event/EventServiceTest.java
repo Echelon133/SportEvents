@@ -3,9 +3,11 @@ package ml.echelon133.sportevents.event;
 import ml.echelon133.sportevents.event.types.AbstractMatchEvent;
 import ml.echelon133.sportevents.event.types.ManagingEvent;
 import ml.echelon133.sportevents.event.types.StandardEvent;
+import ml.echelon133.sportevents.event.types.SubstitutionEvent;
 import ml.echelon133.sportevents.event.types.dto.ManagingEventDto;
 import ml.echelon133.sportevents.event.types.dto.MatchEventDto;
 import ml.echelon133.sportevents.event.types.dto.StandardEventDto;
+import ml.echelon133.sportevents.event.types.dto.SubstitutionEventDto;
 import ml.echelon133.sportevents.league.League;
 import ml.echelon133.sportevents.match.Match;
 import ml.echelon133.sportevents.match.MatchService;
@@ -102,5 +104,24 @@ public class EventServiceTest {
             assertThat(matchEvent.getMatch()).isEqualTo(match);
             assertThat(matchEvent).isExactlyInstanceOf(ManagingEvent.class);
         }
+    }
+
+    @Test
+    public void convertEventDtoToEntityConvertsSubstitutionEventDtoToCorrectEntity() throws Exception {
+        Match match = getTestMatch();
+        SubstitutionEventDto matchEventDto = new SubstitutionEventDto(10L, "Test message", "SUBSTITUTION",
+                                                    "Test Player", "Test Player2");
+
+        // When
+        SubstitutionEvent substitutionEvent = (SubstitutionEvent)eventService.convertEventDtoToEntity(matchEventDto, match);
+
+        // Then
+        assertThat(substitutionEvent.getId()).isNull();
+        assertThat(substitutionEvent.getTime()).isEqualTo(matchEventDto.getTime());
+        assertThat(substitutionEvent.getMessage()).isEqualTo(matchEventDto.getMessage());
+        assertThat(substitutionEvent.getType()).isEqualTo(AbstractMatchEvent.EventType.SUBSTITUTION);
+        assertThat(substitutionEvent.getMatch()).isEqualTo(match);
+        assertThat(substitutionEvent.getPlayerIn()).isEqualTo(matchEventDto.getPlayerIn());
+        assertThat(substitutionEvent.getPlayerOut()).isEqualTo(matchEventDto.getPlayerOut());
     }
 }
