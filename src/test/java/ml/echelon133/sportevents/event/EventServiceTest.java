@@ -142,4 +142,21 @@ public class EventServiceTest {
         assertThat(goalEvent.getTeamScoring()).isEqualTo(match.getTeamA());
         assertThat(goalEvent.getPlayerScoring()).isEqualTo(matchEventDto.getScorerName());
     }
+
+    @Test
+    public void convertEventDtoToEntityConvertsPenaltyEventDtoToCorrectEntity() throws Exception {
+        Match match = getTestMatch();
+        PenaltyEventDto matchEventDto = new PenaltyEventDto(10L, "Test message", "PENALTY", 10L);
+
+        // When
+        PenaltyEvent penaltyEvent = (PenaltyEvent)eventService.convertEventDtoToEntity(matchEventDto, match);
+
+        // Then
+        assertThat(penaltyEvent.getId()).isNull();
+        assertThat(penaltyEvent.getTime()).isEqualTo(matchEventDto.getTime());
+        assertThat(penaltyEvent.getMessage()).isEqualTo(matchEventDto.getMessage());
+        assertThat(penaltyEvent.getType()).isEqualTo(AbstractMatchEvent.EventType.PENALTY);
+        assertThat(penaltyEvent.getMatch()).isEqualTo(match);
+        assertThat(penaltyEvent.getTeam()).isEqualTo(match.getTeamB());
+    }
 }
