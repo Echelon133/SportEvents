@@ -153,6 +153,15 @@ public class EventServiceTest {
         assertThat(goalEvent.getPlayerScoring()).isEqualTo(matchEventDto.getScorerName());
     }
 
+    @Test(expected = ProcessedEventRejectedException.class)
+    public void convertEventDtoToEntityFailsWhenPenaltyEventDtoHasInvalidTeamId() throws Exception {
+        Match match = getTestMatch();
+        PenaltyEventDto matchEventDto = new PenaltyEventDto(10L, "Test message", "PENALTY", 11L);
+
+        // When
+        PenaltyEvent penaltyEvent = (PenaltyEvent)eventService.convertEventDtoToEntity(matchEventDto, match);
+    }
+
     @Test
     public void convertEventDtoToEntityConvertsPenaltyEventDtoToCorrectEntity() throws Exception {
         Match match = getTestMatch();
