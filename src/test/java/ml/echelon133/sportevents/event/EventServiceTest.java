@@ -1,13 +1,7 @@
 package ml.echelon133.sportevents.event;
 
-import ml.echelon133.sportevents.event.types.AbstractMatchEvent;
-import ml.echelon133.sportevents.event.types.ManagingEvent;
-import ml.echelon133.sportevents.event.types.StandardEvent;
-import ml.echelon133.sportevents.event.types.SubstitutionEvent;
-import ml.echelon133.sportevents.event.types.dto.ManagingEventDto;
-import ml.echelon133.sportevents.event.types.dto.MatchEventDto;
-import ml.echelon133.sportevents.event.types.dto.StandardEventDto;
-import ml.echelon133.sportevents.event.types.dto.SubstitutionEventDto;
+import ml.echelon133.sportevents.event.types.*;
+import ml.echelon133.sportevents.event.types.dto.*;
 import ml.echelon133.sportevents.league.League;
 import ml.echelon133.sportevents.match.Match;
 import ml.echelon133.sportevents.match.MatchService;
@@ -36,8 +30,13 @@ public class EventServiceTest {
 
     private Match getTestMatch() {
         League league = new League("test name", "test country");
+
         Team teamA = new Team("testA", league);
+        teamA.setId(5L);
+
         Team teamB = new Team("testB", league);
+        teamB.setId(10L);
+
         Match match = new Match(new Date(), teamA, teamB, league, null);
         match.setId(1L);
         return match;
@@ -123,5 +122,24 @@ public class EventServiceTest {
         assertThat(substitutionEvent.getMatch()).isEqualTo(match);
         assertThat(substitutionEvent.getPlayerIn()).isEqualTo(matchEventDto.getPlayerIn());
         assertThat(substitutionEvent.getPlayerOut()).isEqualTo(matchEventDto.getPlayerOut());
+    }
+
+    @Test
+    public void convertEventDtoToEntityConvertsGoalEventDtoToCorrectEntity() throws Exception {
+        Match match = getTestMatch();
+        GoalEventDto matchEventDto = new GoalEventDto(10L, "Test message", "GOAL",
+                                             5L, "Player test");
+
+        // When
+        GoalEvent goalEvent = (GoalEvent)eventService.convertEventDtoToEntity(matchEventDto, match);
+
+        // Then
+        assertThat(goalEvent.getId()).isNull();
+        assertThat(goalEvent.getTime()).isEqualTo(matchEventDto.getTime());
+        assertThat(goalEvent.getMessage()).isEqualTo(matchEventDto.getMessage());
+        assertThat(goalEvent.getType()).isEqualTo(AbstractMatchEvent.EventType.GOAL);
+        assertThat(goalEvent.getMatch()).isEqualTo(match);
+        assertThat(goalEvent.getTeamScoring()).isEqualTo(match.getTeamA());
+        assertThat(goalEvent.getPlayerScoring()).isEqualTo(matchEventDto.getScorerName());
     }
 }
