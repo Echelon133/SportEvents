@@ -143,6 +143,16 @@ public class EventServiceTest {
         assertThat(goalEvent.getPlayerScoring()).isEqualTo(matchEventDto.getScorerName());
     }
 
+    @Test(expected = ProcessedEventRejectedException.class)
+    public void convertEventDtoToEntityFailsWhenGoalEventDtoHasInvalidTeamId() throws Exception {
+        Match match = getTestMatch();
+        GoalEventDto matchEventDto = new GoalEventDto(10L, "Test message", "GOAL",
+                                             6L, "Player test");
+
+        // When
+        GoalEvent goalEvent = (GoalEvent)eventService.convertEventDtoToEntity(matchEventDto, match);
+    }
+
     @Test
     public void convertEventDtoToEntityConvertsPenaltyEventDtoToCorrectEntity() throws Exception {
         Match match = getTestMatch();
@@ -158,5 +168,23 @@ public class EventServiceTest {
         assertThat(penaltyEvent.getType()).isEqualTo(AbstractMatchEvent.EventType.PENALTY);
         assertThat(penaltyEvent.getMatch()).isEqualTo(match);
         assertThat(penaltyEvent.getTeam()).isEqualTo(match.getTeamB());
+    }
+
+    @Test
+    public void convertEventDtoToEntityConvertsCardEventDtoToCorrectEntity() throws Exception {
+        Match match = getTestMatch();
+        CardEventDto matchEventDto = new CardEventDto(10L, "Test message", "CARD", "Player name" ,"RED");
+
+        // When
+        CardEvent cardEvent = (CardEvent)eventService.convertEventDtoToEntity(matchEventDto, match);
+
+        // Then
+        assertThat(cardEvent.getId()).isNull();
+        assertThat(cardEvent.getTime()).isEqualTo(matchEventDto.getTime());
+        assertThat(cardEvent.getMessage()).isEqualTo(matchEventDto.getMessage());
+        assertThat(cardEvent.getType()).isEqualTo(AbstractMatchEvent.EventType.CARD);
+        assertThat(cardEvent.getMatch()).isEqualTo(match);
+        assertThat(cardEvent.getCardedPlayer()).isEqualTo(matchEventDto.getPlayer());
+        assertThat(cardEvent.getCardColor()).isEqualTo(CardEvent.CardColor.RED);
     }
 }
