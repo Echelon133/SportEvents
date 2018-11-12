@@ -407,4 +407,28 @@ public class EventServiceTest {
         assertThat(acceptedEventTypes.contains(AbstractMatchEvent.EventType.FINISH_MATCH)).isTrue();
         assertThat(acceptedEventTypes.contains(AbstractMatchEvent.EventType.PENALTY)).isTrue();
     }
+
+    @Test
+    public void processEventAcceptsCorrectEventsWhenMatchStatusIs_Finished() throws Exception {
+        Match match = getTestMatch();
+        match.setStatus(Match.Status.FINISHED);
+
+        List<AbstractMatchEvent> acceptedEvents = new ArrayList<>();
+
+        // When
+        for (AbstractMatchEvent event : getTestEventsForMatch(match)) {
+            try {
+                eventService.processEvent(event);
+                acceptedEvents.add(event);
+            } catch (ProcessedEventRejectedException ex) {
+                // do nothing, we only want to collect accepted events
+            }
+        }
+
+        // Then
+        Set<AbstractMatchEvent.EventType> acceptedEventTypes = extractEventTypeSetFromEventList(acceptedEvents);
+
+        assertThat(acceptedEvents.size()).isEqualTo(1);
+        assertThat(acceptedEventTypes.contains(AbstractMatchEvent.EventType.STANDARD_DESCRIPTION)).isTrue();
+    }
 }
