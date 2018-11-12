@@ -8,9 +8,7 @@ import ml.echelon133.sportevents.team.Team;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
-import java.util.Arrays;
-import java.util.List;
-import java.util.Optional;
+import java.util.*;
 
 @Service
 public class EventServiceImpl implements EventService {
@@ -94,7 +92,7 @@ public class EventServiceImpl implements EventService {
         boolean processedAndSaved = false;
         Match match = event.getMatch();
 
-        if (isValidEventTypeForMatchStatus(match.getStatus(), event.getType())) {
+        if (isValidEventTypeForStatus(match.getStatus(), event.getType())) {
             processedAndSaved = continueEventProcessing(event);
         } else {
             String message = String
@@ -105,8 +103,63 @@ public class EventServiceImpl implements EventService {
         return processedAndSaved;
     }
 
-    private boolean isValidEventTypeForMatchStatus(Match.Status status, AbstractMatchEvent.EventType type) {
-        return false;
+    private boolean isValidEventTypeForStatus(Match.Status status, AbstractMatchEvent.EventType type) {
+        List<AbstractMatchEvent.EventType> allowedEventTypes;
+
+        switch (status.toString()) {
+            case "NOT_STARTED":
+                allowedEventTypes = Arrays.asList(AbstractMatchEvent.EventType.START_FIRST_HALF,
+                                                  AbstractMatchEvent.EventType.STANDARD_DESCRIPTION);
+                break;
+            case "FIRST_HALF":
+                allowedEventTypes = Arrays.asList(AbstractMatchEvent.EventType.GOAL,
+                                                  AbstractMatchEvent.EventType.STANDARD_DESCRIPTION,
+                                                  AbstractMatchEvent.EventType.CARD,
+                                                  AbstractMatchEvent.EventType.FINISH_FIRST_HALF,
+                                                  AbstractMatchEvent.EventType.SUBSTITUTION);
+                break;
+            case "SECOND_HALF":
+                allowedEventTypes = Arrays.asList(AbstractMatchEvent.EventType.GOAL,
+                                                  AbstractMatchEvent.EventType.STANDARD_DESCRIPTION,
+                                                  AbstractMatchEvent.EventType.CARD,
+                                                  AbstractMatchEvent.EventType.FINISH_SECOND_HALF,
+                                                  AbstractMatchEvent.EventType.SUBSTITUTION,
+                                                  AbstractMatchEvent.EventType.FINISH_MATCH);
+                break;
+            case "BREAK_TIME":
+                allowedEventTypes = Arrays.asList(AbstractMatchEvent.EventType.START_SECOND_HALF,
+                                                  AbstractMatchEvent.EventType.STANDARD_DESCRIPTION,
+                                                  AbstractMatchEvent.EventType.START_OT_SECOND_HALF,
+                                                  AbstractMatchEvent.EventType.START_OT_FIRST_HALF,
+                                                  AbstractMatchEvent.EventType.SUBSTITUTION);
+                break;
+            case "OT_FIRST_HALF":
+                allowedEventTypes = Arrays.asList(AbstractMatchEvent.EventType.GOAL,
+                                                  AbstractMatchEvent.EventType.STANDARD_DESCRIPTION,
+                                                  AbstractMatchEvent.EventType.CARD,
+                                                  AbstractMatchEvent.EventType.FINISH_OT_FIRST_HALF,
+                                                  AbstractMatchEvent.EventType.SUBSTITUTION);
+                break;
+            case "OT_SECOND_HALF":
+                allowedEventTypes = Arrays.asList(AbstractMatchEvent.EventType.GOAL,
+                                                  AbstractMatchEvent.EventType.STANDARD_DESCRIPTION,
+                                                  AbstractMatchEvent.EventType.CARD,
+                                                  AbstractMatchEvent.EventType.FINISH_OT_SECOND_HALF,
+                                                  AbstractMatchEvent.EventType.SUBSTITUTION,
+                                                  AbstractMatchEvent.EventType.FINISH_MATCH);
+                break;
+            case "PENALTIES":
+                allowedEventTypes = Arrays.asList(AbstractMatchEvent.EventType.PENALTY,
+                                                  AbstractMatchEvent.EventType.FINISH_MATCH);
+                break;
+            case "FINISHED":
+                allowedEventTypes = Arrays.asList(AbstractMatchEvent.EventType.STANDARD_DESCRIPTION);
+                break;
+            default:
+                allowedEventTypes = Collections.emptyList();
+                break;
+        }
+        return allowedEventTypes.contains(type);
     }
 
     private boolean continueEventProcessing(AbstractMatchEvent event) {
