@@ -12,9 +12,7 @@ import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.MockitoJUnitRunner;
 
-import java.util.Arrays;
-import java.util.Date;
-import java.util.List;
+import java.util.*;
 import java.util.stream.Collectors;
 
 import static org.assertj.core.api.AssertionsForClassTypes.assertThat;
@@ -40,6 +38,30 @@ public class EventServiceTest {
         Match match = new Match(new Date(), teamA, teamB, league, null);
         match.setId(1L);
         return match;
+    }
+
+    private List<AbstractMatchEvent> getTestEventsForMatch(Match match) {
+        AbstractMatchEvent startFirstHalfEvent = new ManagingEvent(1L, "Test", AbstractMatchEvent.EventType.START_FIRST_HALF, match);
+        AbstractMatchEvent finishFirstHalfEvent = new ManagingEvent(45L, "Test", AbstractMatchEvent.EventType.FINISH_FIRST_HALF, match);
+        AbstractMatchEvent startSecondHalfEvent = new ManagingEvent(45L, "Test", AbstractMatchEvent.EventType.START_SECOND_HALF, match);
+        AbstractMatchEvent finishSecondHalfEvent = new ManagingEvent(90L, "Test", AbstractMatchEvent.EventType.FINISH_SECOND_HALF, match);
+        AbstractMatchEvent finishMatchEvent = new ManagingEvent(90L, "Test", AbstractMatchEvent.EventType.FINISH_MATCH, match);
+        AbstractMatchEvent startOTFirstHalfEvent = new ManagingEvent(90L, "Test", AbstractMatchEvent.EventType.START_OT_FIRST_HALF, match);
+        AbstractMatchEvent finishOTFirstHalfEvent = new ManagingEvent(105L, "Test", AbstractMatchEvent.EventType.FINISH_OT_FIRST_HALF, match);
+        AbstractMatchEvent startOTSecondHalfEvent = new ManagingEvent(105L, "Test", AbstractMatchEvent.EventType.START_OT_SECOND_HALF, match);
+        AbstractMatchEvent finishOTSecondHalfEvent = new ManagingEvent(120L, "Test", AbstractMatchEvent.EventType.FINISH_OT_SECOND_HALF, match);
+        AbstractMatchEvent goalEvent = new GoalEvent(10L, "Test", AbstractMatchEvent.EventType.GOAL, match, match.getTeamA(), "Test player");
+        AbstractMatchEvent penaltyEvent = new PenaltyEvent(120L, "Test", AbstractMatchEvent.EventType.PENALTY, match, match.getTeamB());
+        AbstractMatchEvent cardEvent = new CardEvent(20L, "Test", AbstractMatchEvent.EventType.CARD, match, "Player", CardEvent.CardColor.YELLOW);
+        AbstractMatchEvent substitutionEvent = new SubstitutionEvent(45L, "Test", AbstractMatchEvent.EventType.SUBSTITUTION, match, "Player One", "Player Two");
+        AbstractMatchEvent standardDescriptionEvent = new StandardEvent(10L, "Test", AbstractMatchEvent.EventType.STANDARD_DESCRIPTION, match);
+
+        List<AbstractMatchEvent> matchEvents = Arrays.asList(startFirstHalfEvent, finishFirstHalfEvent,
+                startSecondHalfEvent, finishSecondHalfEvent, finishMatchEvent,
+                startOTFirstHalfEvent, finishOTFirstHalfEvent, startOTSecondHalfEvent, finishOTSecondHalfEvent, goalEvent,
+                penaltyEvent, cardEvent, substitutionEvent, standardDescriptionEvent);
+
+        return matchEvents;
     }
 
     @Test(expected = ProcessedEventRejectedException.class)
@@ -195,5 +217,37 @@ public class EventServiceTest {
         assertThat(cardEvent.getMatch()).isEqualTo(match);
         assertThat(cardEvent.getCardedPlayer()).isEqualTo(matchEventDto.getPlayer());
         assertThat(cardEvent.getCardColor()).isEqualTo(CardEvent.CardColor.RED);
+    }
+
+    private Set<AbstractMatchEvent.EventType> extractEventTypeSetFromEventList(List<AbstractMatchEvent> events) {
+        return events
+                .stream()
+                .map(AbstractMatchEvent::getType)
+                .collect(Collectors.toSet());
+    }
+
+    @Test
+    public void processEventAcceptsCorrectEventsWhenMatchStatusIs_NotStarted() throws Exception {
+        // Test match has NOT_STARTED status by default
+        Match match = getTestMatch();
+
+        List<AbstractMatchEvent> acceptedEvents = new ArrayList<>();
+
+        // When
+        for (AbstractMatchEvent event : getTestEventsForMatch(match)) {
+            try {
+                eventService.processEvent(event);
+                acceptedEvents.add(event);
+            } catch (ProcessedEventRejectedException ex) {
+                // do nothing, we only want to collect accepted events
+            }
+        }
+
+        // Then
+        Set<AbstractMatchEvent.EventType> acceptedEventTypes = extractEventTypeSetFromEventList(acceptedEvents);
+
+        assertThat(acceptedEvents.size()).isEqualTo(2);
+        assertThat(acceptedEventTypes.contains(AbstractMatchEvent.EventType.STANDARD_DESCRIPTION)).isTrue();
+        assertThat(acceptedEventTypes.contains(AbstractMatchEvent.EventType.START_FIRST_HALF)).isTrue();
     }
 }
