@@ -297,4 +297,32 @@ public class EventServiceTest {
         assertThat(acceptedEventTypes.contains(AbstractMatchEvent.EventType.CARD)).isTrue();
         assertThat(acceptedEventTypes.contains(AbstractMatchEvent.EventType.FINISH_MATCH)).isTrue();
     }
+
+    @Test
+    public void processEventAcceptsCorrectEventsWhenMatchStatusIs_BreakTime() throws Exception {
+        Match match = getTestMatch();
+        match.setStatus(Match.Status.BREAK_TIME);
+
+        List<AbstractMatchEvent> acceptedEvents = new ArrayList<>();
+
+        // When
+        for (AbstractMatchEvent event : getTestEventsForMatch(match)) {
+            try {
+                eventService.processEvent(event);
+                acceptedEvents.add(event);
+            } catch (ProcessedEventRejectedException ex) {
+                // do nothing, we only want to collect accepted events
+            }
+        }
+
+        // Then
+        Set<AbstractMatchEvent.EventType> acceptedEventTypes = extractEventTypeSetFromEventList(acceptedEvents);
+
+        assertThat(acceptedEvents.size()).isEqualTo(5);
+        assertThat(acceptedEventTypes.contains(AbstractMatchEvent.EventType.STANDARD_DESCRIPTION)).isTrue();
+        assertThat(acceptedEventTypes.contains(AbstractMatchEvent.EventType.START_SECOND_HALF)).isTrue();
+        assertThat(acceptedEventTypes.contains(AbstractMatchEvent.EventType.START_OT_SECOND_HALF)).isTrue();
+        assertThat(acceptedEventTypes.contains(AbstractMatchEvent.EventType.START_OT_FIRST_HALF)).isTrue();
+        assertThat(acceptedEventTypes.contains(AbstractMatchEvent.EventType.SUBSTITUTION)).isTrue();
+    }
 }
