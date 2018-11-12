@@ -64,16 +64,6 @@ public class EventServiceTest {
         return matchEvents;
     }
 
-    @Test(expected = ProcessedEventRejectedException.class)
-    public void processEventRejectsAllEvents() throws Exception {
-        Match match = getTestMatch();
-        AbstractMatchEvent event = new ManagingEvent(10L, "Test message",
-                AbstractMatchEvent.EventType.START_FIRST_HALF, match);
-
-        // When
-        eventService.processEvent(event);
-    }
-
     @Test
     public void convertEventDtoToEntityConvertsStandardEventDtoToCorrectEntity() throws Exception {
         Match match = getTestMatch();
