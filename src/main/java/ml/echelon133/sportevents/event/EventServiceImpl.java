@@ -163,6 +163,65 @@ public class EventServiceImpl implements EventService {
     }
 
     private boolean continueEventProcessing(AbstractMatchEvent event) {
-        return false;
+        Match match = event.getMatch();
+        match.addEvent(event);
+
+        switch (event.getType().toString()) {
+            case "START_FIRST_HALF":
+                match.setStatus(Match.Status.FIRST_HALF);
+                break;
+            case "FINISH_FIRST_HALF":
+                match.setStatus(Match.Status.BREAK_TIME);
+                break;
+            case "START_SECOND_HALF":
+                match.setStatus(Match.Status.SECOND_HALF);
+                break;
+            case "FINISH_SECOND_HALF":
+                match.setStatus(Match.Status.BREAK_TIME);
+                break;
+            case "FINISH_MATCH":
+                match.setStatus(Match.Status.FINISHED);
+                break;
+            case "START_OT_FIRST_HALF":
+                match.setStatus(Match.Status.OT_FIRST_HALF);
+                break;
+            case "FINISH_OT_FIRST_HALF":
+                match.setStatus(Match.Status.BREAK_TIME);
+                break;
+            case "START_OT_SECOND_HALF":
+                match.setStatus(Match.Status.OT_SECOND_HALF);
+                break;
+            case "FINISH_OT_SECOND_HALF":
+                match.setStatus(Match.Status.PENALTIES);
+                break;
+            case "GOAL":
+                GoalEvent goalEvent = (GoalEvent)event;
+                Team teamScoringGoal = goalEvent.getTeamScoring();
+                if (teamScoringGoal == match.getTeamA()) {
+                    match.getResult().addGoalTeamA(goalEvent.getTime(), goalEvent.getPlayerScoring());
+                } else {
+                    match.getResult().addGoalTeamB(goalEvent.getTime(), goalEvent.getPlayerScoring());
+                }
+                break;
+            case "PENALTY":
+                PenaltyEvent penaltyEvent = (PenaltyEvent)event;
+                Team teamScoringPenalty = penaltyEvent.getTeam();
+                if (teamScoringPenalty == match.getTeamA()) {
+                    match.getResult().addPenaltyTeamA();
+                } else {
+                    match.getResult().addPenaltyTeamB();
+                }
+                break;
+            case "STANDARD_DESCRIPTION":
+            case "SUBSTITUTION":
+            case "CARD":
+                // events of this type do not change state
+                break;
+            default:
+                // cases above catch all event types
+                // do nothing here
+                break;
+        }
+        return matchService.save(match) != null;
     }
 }
