@@ -431,4 +431,168 @@ public class EventServiceTest {
         assertThat(acceptedEvents.size()).isEqualTo(1);
         assertThat(acceptedEventTypes.contains(AbstractMatchEvent.EventType.STANDARD_DESCRIPTION)).isTrue();
     }
+
+    @Test
+    public void processEventMatchStatusChangesAfterSendingEvent_StartFirstHalf() throws Exception {
+        Match testMatch = getTestMatch();
+
+        AbstractMatchEvent matchEvent = new ManagingEvent(1L, "Test",
+                                                          AbstractMatchEvent.EventType.START_FIRST_HALF, testMatch);
+
+        // When
+        eventService.processEvent(matchEvent);
+
+        // Then
+        assertThat(testMatch.getStatus()).isEqualTo(Match.Status.FIRST_HALF);
+    }
+
+    @Test
+    public void processEventMatchStatusChangesAfterSendingEvent_FinishFirstHalf() throws Exception {
+        Match testMatch = getTestMatch();
+        testMatch.setStatus(Match.Status.FIRST_HALF);
+
+        AbstractMatchEvent matchEvent = new ManagingEvent(45L, "Test",
+                                                          AbstractMatchEvent.EventType.FINISH_FIRST_HALF, testMatch);
+
+        // When
+        eventService.processEvent(matchEvent);
+
+        // Then
+        assertThat(testMatch.getStatus()).isEqualTo(Match.Status.BREAK_TIME);
+    }
+
+    @Test
+    public void processEventMatchStatusChangesAfterSendingEvent_StartSecondHalf() throws Exception {
+        Match testMatch = getTestMatch();
+        testMatch.setStatus(Match.Status.BREAK_TIME);
+
+        AbstractMatchEvent matchEvent = new ManagingEvent(45L, "Test",
+                                                          AbstractMatchEvent.EventType.START_SECOND_HALF, testMatch);
+
+        // When
+        eventService.processEvent(matchEvent);
+
+        // Then
+        assertThat(testMatch.getStatus()).isEqualTo(Match.Status.SECOND_HALF);
+    }
+
+    @Test
+    public void processEventMatchStatusChangesAfterSendingEvent_FinishMatch() throws Exception {
+        Match testMatch = getTestMatch();
+        testMatch.setStatus(Match.Status.SECOND_HALF);
+
+        AbstractMatchEvent matchEvent = new ManagingEvent(90L, "Test",
+                                                          AbstractMatchEvent.EventType.FINISH_MATCH, testMatch);
+
+        // When
+        eventService.processEvent(matchEvent);
+
+        // Then
+        assertThat(testMatch.getStatus()).isEqualTo(Match.Status.FINISHED);
+    }
+
+    @Test
+    public void processEventMatchStatusChangesAfterSendingEvent_FinishSecondHalf() throws Exception {
+        Match testMatch = getTestMatch();
+        testMatch.setStatus(Match.Status.SECOND_HALF);
+
+        AbstractMatchEvent matchEvent = new ManagingEvent(90L, "Test",
+                                                          AbstractMatchEvent.EventType.FINISH_SECOND_HALF, testMatch);
+
+        // When
+        eventService.processEvent(matchEvent);
+
+        // Then
+        assertThat(testMatch.getStatus()).isEqualTo(Match.Status.BREAK_TIME);
+    }
+
+    @Test
+    public void processEventMatchStatusChangesAfterSendingEvent_StartOTFirstHalf() throws Exception {
+        Match testMatch = getTestMatch();
+        testMatch.setStatus(Match.Status.BREAK_TIME);
+
+        AbstractMatchEvent matchEvent = new ManagingEvent(90L, "Test",
+                                                          AbstractMatchEvent.EventType.START_OT_FIRST_HALF, testMatch);
+
+        // When
+        eventService.processEvent(matchEvent);
+
+        // Then
+        assertThat(testMatch.getStatus()).isEqualTo(Match.Status.OT_FIRST_HALF);
+    }
+
+    @Test
+    public void processEventMatchStatusChangesAfterSendingEvent_FinishOTFirstHalf() throws Exception {
+        Match testMatch = getTestMatch();
+        testMatch.setStatus(Match.Status.OT_FIRST_HALF);
+
+        AbstractMatchEvent matchEvent = new ManagingEvent(105L, "Test",
+                                                          AbstractMatchEvent.EventType.FINISH_OT_FIRST_HALF, testMatch);
+
+        // When
+        eventService.processEvent(matchEvent);
+
+        // Then
+        assertThat(testMatch.getStatus()).isEqualTo(Match.Status.BREAK_TIME);
+    }
+
+    @Test
+    public void processEventMatchStatusChangesAfterSendingEvent_StartOTSecondHalf() throws Exception {
+        Match testMatch = getTestMatch();
+        testMatch.setStatus(Match.Status.BREAK_TIME);
+
+        AbstractMatchEvent matchEvent = new ManagingEvent(105L, "Test",
+                                                          AbstractMatchEvent.EventType.START_OT_SECOND_HALF, testMatch);
+
+        // When
+        eventService.processEvent(matchEvent);
+
+        // Then
+        assertThat(testMatch.getStatus()).isEqualTo(Match.Status.OT_SECOND_HALF);
+    }
+
+    @Test
+    public void processEventMatchStatusChangesAfterSendingEvent_FinishOTSecondHalf() throws Exception {
+        Match testMatch = getTestMatch();
+        testMatch.setStatus(Match.Status.OT_SECOND_HALF);
+
+        AbstractMatchEvent matchEvent = new ManagingEvent(120L, "Test",
+                                                          AbstractMatchEvent.EventType.FINISH_OT_SECOND_HALF, testMatch);
+
+        // When
+        eventService.processEvent(matchEvent);
+
+        // Then
+        assertThat(testMatch.getStatus()).isEqualTo(Match.Status.PENALTIES);
+    }
+
+    @Test
+    public void processEventMatchStatusChangesAfterSendingEvent_FinishMatch_WhenInPenalties() throws Exception {
+        Match testMatch = getTestMatch();
+        testMatch.setStatus(Match.Status.PENALTIES);
+
+        AbstractMatchEvent matchEvent = new ManagingEvent(120L, "Test",
+                                                          AbstractMatchEvent.EventType.FINISH_MATCH, testMatch);
+
+        // When
+        eventService.processEvent(matchEvent);
+
+        // Then
+        assertThat(testMatch.getStatus()).isEqualTo(Match.Status.FINISHED);
+    }
+
+    @Test
+    public void processEventMatchStatusChangesAfterSendingEvent_FinishMatch_WhenInOT() throws Exception {
+        Match testMatch = getTestMatch();
+        testMatch.setStatus(Match.Status.OT_SECOND_HALF);
+
+        AbstractMatchEvent matchEvent = new ManagingEvent(120L, "Test",
+                                                          AbstractMatchEvent.EventType.FINISH_MATCH, testMatch);
+
+        // When
+        eventService.processEvent(matchEvent);
+
+        // Then
+        assertThat(testMatch.getStatus()).isEqualTo(Match.Status.FINISHED);
+    }
 }
