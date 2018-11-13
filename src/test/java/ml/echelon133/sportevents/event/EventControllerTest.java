@@ -34,7 +34,9 @@ import java.util.Date;
 import java.util.List;
 
 import static org.assertj.core.api.AssertionsForClassTypes.assertThat;
+import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyLong;
+import static org.mockito.ArgumentMatchers.argThat;
 import static org.mockito.BDDMockito.given;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
@@ -59,6 +61,9 @@ public class EventControllerTest {
 
     @Mock
     private MatchService matchService;
+
+    @Mock
+    private EventService eventService;
 
     @InjectMocks
     private EventController eventController;
@@ -334,5 +339,67 @@ public class EventControllerTest {
         // Then
         assertThat(response.getStatus()).isEqualTo(HttpStatus.NOT_FOUND.value());
         assertThat(response.getContentAsString()).contains("Match with this id does not exist");
+    }
+    
+    @Test
+    public void receiveEventReturnsCorrectResponseOnCorrectEvent() throws Exception {
+        MatchEventDto matchEventDto = new ManagingEventDto(1L, "Test", "START_FIRST_HALF");
+        JsonContent<MatchEventDto> jsonContent = jsonMatchEventDto.write(matchEventDto);
+
+        Match match = buildMatch(10L, null, null, null, null);
+
+        AbstractMatchEvent matchEvent = new ManagingEvent(matchEventDto.getTime(), matchEventDto.getMessage(),
+                                                          AbstractMatchEvent.EventType.valueOf(matchEventDto.getType()), match);
+
+        // Given
+        given(matchService.findById(10L)).willReturn(match);
+        given(eventService.convertEventDtoToEntity(argThat(
+                arg ->  arg.getTime().equals(matchEventDto.getTime()) &&
+                        arg.getType().equals(matchEventDto.getType()) &&
+                        arg.getMessage().equals(matchEventDto.getMessage())
+        ), any(Match.class))).willReturn(matchEvent);
+        given(eventService.processEvent(matchEvent)).willReturn(true);
+
+        // When
+        MockHttpServletResponse response = mockMvc.perform(
+                post("/api/matches/10/events")
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(jsonContent.getJson())
+                        .accept(MediaType.APPLICATION_JSON)).andReturn().getResponse();
+
+        // Then
+        assertThat(response.getStatus()).isEqualTo(HttpStatus.OK.value());
+        assertThat(response.getContentAsString()).isEqualTo("{\"eventProcessed\":true}");
+    }
+
+    @Test
+    public void receiveEventReturnsCorrectResponseOnEventThatFailedProcessing() throws Exception {
+        MatchEventDto matchEventDto = new ManagingEventDto(1L, "Test", "START_FIRST_HALF");
+        JsonContent<MatchEventDto> jsonContent = jsonMatchEventDto.write(matchEventDto);
+
+        Match match = buildMatch(10L, null, null, null, null);
+
+        AbstractMatchEvent matchEvent = new ManagingEvent(matchEventDto.getTime(), matchEventDto.getMessage(),
+                AbstractMatchEvent.EventType.valueOf(matchEventDto.getType()), match);
+
+        // Given
+        given(matchService.findById(10L)).willReturn(match);
+        given(eventService.convertEventDtoToEntity(argThat(
+                arg ->  arg.getTime().equals(matchEventDto.getTime()) &&
+                        arg.getType().equals(matchEventDto.getType()) &&
+                        arg.getMessage().equals(matchEventDto.getMessage())
+        ), any(Match.class))).willReturn(matchEvent);
+        given(eventService.processEvent(matchEvent)).willReturn(false);
+
+        // When
+        MockHttpServletResponse response = mockMvc.perform(
+                post("/api/matches/10/events")
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(jsonContent.getJson())
+                        .accept(MediaType.APPLICATION_JSON)).andReturn().getResponse();
+
+        // Then
+        assertThat(response.getStatus()).isEqualTo(HttpStatus.OK.value());
+        assertThat(response.getContentAsString()).isEqualTo("{\"eventProcessed\":false}");
     }
 }
