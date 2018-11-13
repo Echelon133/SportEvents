@@ -230,6 +230,9 @@ public class EventServiceTest {
                 acceptedEvents.add(event);
             } catch (ProcessedEventRejectedException ex) {
                 // do nothing, we only want to collect accepted events
+            } finally {
+                // restore tested status that might have been changed by processEvent call
+                match.setStatus(Match.Status.NOT_STARTED);
             }
         }
 
@@ -255,6 +258,9 @@ public class EventServiceTest {
                 acceptedEvents.add(event);
             } catch (ProcessedEventRejectedException ex) {
                 // do nothing, we only want to collect accepted events
+            } finally {
+                // restore tested status that might have been changed by processEvent call
+                match.setStatus(Match.Status.FIRST_HALF);
             }
         }
 
@@ -283,6 +289,9 @@ public class EventServiceTest {
                 acceptedEvents.add(event);
             } catch (ProcessedEventRejectedException ex) {
                 // do nothing, we only want to collect accepted events
+            } finally {
+                // restore tested status that might have been changed by processEvent call
+                match.setStatus(Match.Status.SECOND_HALF);
             }
         }
 
@@ -312,6 +321,9 @@ public class EventServiceTest {
                 acceptedEvents.add(event);
             } catch (ProcessedEventRejectedException ex) {
                 // do nothing, we only want to collect accepted events
+            } finally {
+                // restore tested status that might have been changed by processEvent call
+                match.setStatus(Match.Status.BREAK_TIME);
             }
         }
 
@@ -340,6 +352,9 @@ public class EventServiceTest {
                 acceptedEvents.add(event);
             } catch (ProcessedEventRejectedException ex) {
                 // do nothing, we only want to collect accepted events
+            } finally {
+                // restore tested status that might have been changed by processEvent call
+                match.setStatus(Match.Status.OT_FIRST_HALF);
             }
         }
 
@@ -368,6 +383,9 @@ public class EventServiceTest {
                 acceptedEvents.add(event);
             } catch (ProcessedEventRejectedException ex) {
                 // do nothing, we only want to collect accepted events
+            } finally {
+                // restore tested status that might have been changed by processEvent call
+                match.setStatus(Match.Status.OT_SECOND_HALF);
             }
         }
 
@@ -397,6 +415,9 @@ public class EventServiceTest {
                 acceptedEvents.add(event);
             } catch (ProcessedEventRejectedException ex) {
                 // do nothing, we only want to collect accepted events
+            } finally {
+                // restore tested status that might have been changed by processEvent call
+                match.setStatus(Match.Status.PENALTIES);
             }
         }
 
@@ -422,6 +443,9 @@ public class EventServiceTest {
                 acceptedEvents.add(event);
             } catch (ProcessedEventRejectedException ex) {
                 // do nothing, we only want to collect accepted events
+            } finally {
+                // restore tested status that might have been changed by processEvent call
+                match.setStatus(Match.Status.FINISHED);
             }
         }
 
