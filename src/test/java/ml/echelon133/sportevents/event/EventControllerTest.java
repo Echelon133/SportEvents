@@ -152,28 +152,28 @@ public class EventControllerTest {
         DocumentContext json = JsonPath.parse(response.getContentAsString());
 
         assertThat(response.getStatus()).isEqualTo(HttpStatus.OK.value());
-        assertThat(json.read("$[0].id").toString()).isEqualTo(event1.getId().toString());
-        assertThat(json.read("$[0].time").toString()).isEqualTo(event1.getTime().toString());
-        assertThat(json.read("$[0].message").toString()).isEqualTo(event1.getMessage());
-        assertThat(json.read("$[0].type").toString()).isEqualTo(event1.getType().toString());
+        assertThat(json.read("$[3].id").toString()).isEqualTo(event1.getId().toString());
+        assertThat(json.read("$[3].time").toString()).isEqualTo(event1.getTime().toString());
+        assertThat(json.read("$[3].message").toString()).isEqualTo(event1.getMessage());
+        assertThat(json.read("$[3].type").toString()).isEqualTo(event1.getType().toString());
 
-        assertThat(json.read("$[1].id").toString()).isEqualTo(event2.getId().toString());
-        assertThat(json.read("$[1].time").toString()).isEqualTo(event2.getTime().toString());
-        assertThat(json.read("$[1].message").toString()).isEqualTo(event2.getMessage());
-        assertThat(json.read("$[1].type").toString()).isEqualTo(event2.getType().toString());
+        assertThat(json.read("$[2].id").toString()).isEqualTo(event2.getId().toString());
+        assertThat(json.read("$[2].time").toString()).isEqualTo(event2.getTime().toString());
+        assertThat(json.read("$[2].message").toString()).isEqualTo(event2.getMessage());
+        assertThat(json.read("$[2].type").toString()).isEqualTo(event2.getType().toString());
 
-        assertThat(json.read("$[2].id").toString()).isEqualTo(event3.getId().toString());
-        assertThat(json.read("$[2].time").toString()).isEqualTo(event3.getTime().toString());
-        assertThat(json.read("$[2].message").toString()).isEqualTo(event3.getMessage());
-        assertThat(json.read("$[2].type").toString()).isEqualTo(event3.getType().toString());
-        assertThat(json.read("$[2].playerScoring").toString()).isEqualTo(event3.getPlayerScoring());
+        assertThat(json.read("$[1].id").toString()).isEqualTo(event3.getId().toString());
+        assertThat(json.read("$[1].time").toString()).isEqualTo(event3.getTime().toString());
+        assertThat(json.read("$[1].message").toString()).isEqualTo(event3.getMessage());
+        assertThat(json.read("$[1].type").toString()).isEqualTo(event3.getType().toString());
+        assertThat(json.read("$[1].playerScoring").toString()).isEqualTo(event3.getPlayerScoring());
 
-        assertThat(json.read("$[3].id").toString()).isEqualTo(event4.getId().toString());
-        assertThat(json.read("$[3].time").toString()).isEqualTo(event4.getTime().toString());
-        assertThat(json.read("$[3].message").toString()).isEqualTo(event4.getMessage());
-        assertThat(json.read("$[3].type").toString()).isEqualTo(event4.getType().toString());
-        assertThat(json.read("$[3].cardedPlayer").toString()).isEqualTo(event4.getCardedPlayer());
-        assertThat(json.read("$[3].cardColor").toString()).isEqualTo(event4.getCardColor().toString());
+        assertThat(json.read("$[0].id").toString()).isEqualTo(event4.getId().toString());
+        assertThat(json.read("$[0].time").toString()).isEqualTo(event4.getTime().toString());
+        assertThat(json.read("$[0].message").toString()).isEqualTo(event4.getMessage());
+        assertThat(json.read("$[0].type").toString()).isEqualTo(event4.getType().toString());
+        assertThat(json.read("$[0].cardedPlayer").toString()).isEqualTo(event4.getCardedPlayer());
+        assertThat(json.read("$[0].cardColor").toString()).isEqualTo(event4.getCardColor().toString());
     }
 
     @Test
