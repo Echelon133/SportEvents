@@ -48,6 +48,7 @@ public class Match {
 
     @OneToMany(mappedBy = "match", cascade = CascadeType.MERGE)
     @JsonIgnore
+    @OrderBy("id DESC")
     private List<AbstractMatchEvent> events;
 
     @Embedded
