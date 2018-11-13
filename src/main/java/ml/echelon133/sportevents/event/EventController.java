@@ -13,17 +13,21 @@ import org.springframework.validation.BindingResult;
 import org.springframework.web.bind.annotation.*;
 
 import javax.validation.Valid;
+import java.util.Collections;
 import java.util.List;
+import java.util.Map;
 
 @RestController
 @RequestMapping("/api/matches/{matchId}")
 public class EventController {
 
     private MatchService matchService;
+    private EventService eventService;
 
     @Autowired
-    public EventController(MatchService matchService) {
+    public EventController(MatchService matchService, EventService eventService) {
         this.matchService = matchService;
+        this.eventService = eventService;
     }
 
     @GetMapping("/events")
@@ -33,13 +37,16 @@ public class EventController {
     }
 
     @PostMapping("/events")
-    public void receiveEvent(@PathVariable Long matchId, @Valid @RequestBody MatchEventDto eventDto, BindingResult result)
-            throws FailedValidationException, ResourceDoesNotExistException {
+    public ResponseEntity<Map<String, Boolean>> receiveEvent(@PathVariable Long matchId, @Valid @RequestBody MatchEventDto eventDto, BindingResult result)
+            throws FailedValidationException, ResourceDoesNotExistException, ProcessedEventRejectedException {
 
         if (result.hasErrors()) {
             throw new FailedValidationException(result.getFieldErrors());
         }
 
         Match match = matchService.findById(matchId);
+        AbstractMatchEvent event = eventService.convertEventDtoToEntity(eventDto, match);
+        boolean processingResult = eventService.processEvent(event);
+        return new ResponseEntity<>(Collections.singletonMap("eventProcessed", processingResult), HttpStatus.OK);
     }
 }
