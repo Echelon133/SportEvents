@@ -1,5 +1,6 @@
 package ml.echelon133.sportevents.league;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import ml.echelon133.sportevents.team.Team;
 
 import javax.persistence.*;
@@ -16,7 +17,8 @@ public class League {
     private String name;
     private String country;
 
-    @OneToMany(mappedBy = "league", cascade = CascadeType.MERGE)
+    @OneToMany(mappedBy = "league", cascade = CascadeType.MERGE, fetch = FetchType.LAZY)
+    @JsonIgnore
     private Set<Team> teams;
 
     public League() {}
@@ -56,5 +58,13 @@ public class League {
 
     public void removeTeam(Team team) {
         teams.remove(team);
+    }
+
+    public Set<Team> getTeams() {
+        return teams;
+    }
+
+    public void setTeams(Set<Team> teams) {
+        this.teams = teams;
     }
 }
