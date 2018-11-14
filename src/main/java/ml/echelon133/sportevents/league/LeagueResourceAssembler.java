@@ -20,6 +20,7 @@ public class LeagueResourceAssembler extends ResourceAssemblerSupport<League, Le
         try {
             resource = new LeagueResource(entity,
                     linkTo(LeagueController.class).withRel("leagues"),
+                    linkTo(methodOn(LeagueController.class).getLeagueTeams(entity.getId())).withRel("league-teams"),
                     linkTo(methodOn(LeagueController.class).getLeague(entity.getId())).withSelfRel());
         } catch (ResourceDoesNotExistException ex) {
             // getLeague throws Exception only if resource (League) does not exist
