@@ -5,6 +5,9 @@ import com.jayway.jsonpath.DocumentContext;
 import com.jayway.jsonpath.JsonPath;
 import ml.echelon133.sportevents.exception.APIExceptionHandler;
 import ml.echelon133.sportevents.exception.ResourceDoesNotExistException;
+import ml.echelon133.sportevents.team.Team;
+import ml.echelon133.sportevents.team.TeamResource;
+import ml.echelon133.sportevents.team.TeamResourceAssembler;
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -26,6 +29,8 @@ import static org.assertj.core.api.AssertionsForClassTypes.assertThat;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyIterable;
 import static org.mockito.BDDMockito.given;
+import static org.springframework.hateoas.mvc.ControllerLinkBuilder.linkTo;
+import static org.springframework.hateoas.mvc.ControllerLinkBuilder.methodOn;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.*;
 
 @RunWith(MockitoJUnitRunner.class)
@@ -96,6 +101,8 @@ public class LeagueControllerTest {
         assertThat(json.read("$.content[0].name").toString()).isEqualTo(league.getName());
         assertThat(json.read("$.content[0].country").toString()).isEqualTo(league.getCountry());
         assertThat(json.read("$.content[0].links[?(@.rel=='leagues')].href").toString()).contains("/api\\/leagues");
+        assertThat(json.read("$.content[0].links[?(@.rel=='league-teams')].href").toString())
+                .contains("/api\\/leagues\\/" + league.getId().toString() + "\\/teams");
         assertThat(json.read("$.content[0].links[?(@.rel=='self')].href").toString())
                 .contains("/api\\/leagues\\/" + league.getId().toString());
     }
@@ -132,6 +139,8 @@ public class LeagueControllerTest {
         assertThat(response.getStatus()).isEqualTo(HttpStatus.OK.value());
         assertThat(json.read("$.links[?(@.rel=='leagues')].href").toString()).contains("/api\\/leagues");
         assertThat(json.read("$.links[?(@.rel=='self')].href").toString()).contains("/api\\/leagues\\/" + league.getId());
+        assertThat(json.read("$.links[?(@.rel=='league-teams')].href").toString())
+                .contains("/api\\/leagues\\/" + league.getId().toString() + "\\/teams");
         assertThat(json.read("$.id").toString()).isEqualTo(league.getId().toString());
         assertThat(json.read("$.name").toString()).isEqualTo(league.getName());
         assertThat(json.read("$.country").toString()).isEqualTo(league.getCountry());
