@@ -7,11 +7,8 @@ import ml.echelon133.sportevents.event.types.*;
 import ml.echelon133.sportevents.event.types.dto.*;
 import ml.echelon133.sportevents.exception.APIExceptionHandler;
 import ml.echelon133.sportevents.exception.ResourceDoesNotExistException;
-import ml.echelon133.sportevents.league.League;
 import ml.echelon133.sportevents.match.Match;
 import ml.echelon133.sportevents.match.MatchService;
-import ml.echelon133.sportevents.stadium.Stadium;
-import ml.echelon133.sportevents.team.Team;
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -30,9 +27,9 @@ import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.test.web.servlet.setup.MockMvcBuilders;
 
 import java.util.Arrays;
-import java.util.Date;
 import java.util.List;
 
+import static ml.echelon133.sportevents.TestUtils.buildMatch;
 import static org.assertj.core.api.AssertionsForClassTypes.assertThat;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyLong;
@@ -88,12 +85,6 @@ public class EventControllerTest {
                 .setControllerAdvice(exceptionHandler)
                 .setMessageConverters(converter)
                 .build();
-    }
-
-    private Match buildMatch(Long id, Team teamA, Team teamB, League league, Stadium stadium) {
-        Match testMatch = new Match(new Date(), teamA, teamB, league, stadium);
-        testMatch.setId(id);
-        return testMatch;
     }
 
     @Test
