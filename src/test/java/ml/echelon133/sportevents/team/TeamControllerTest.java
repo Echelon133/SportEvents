@@ -23,11 +23,12 @@ import org.springframework.test.web.servlet.setup.MockMvcBuilders;
 import java.util.Collections;
 import java.util.List;
 
+import static ml.echelon133.sportevents.TestUtils.buildLeague;
+import static ml.echelon133.sportevents.TestUtils.buildTeam;
+import static ml.echelon133.sportevents.TestUtils.buildTeamResource;
 import static org.assertj.core.api.AssertionsForClassTypes.assertThat;
 import static org.mockito.ArgumentMatchers.*;
 import static org.mockito.BDDMockito.given;
-import static org.springframework.hateoas.mvc.ControllerLinkBuilder.linkTo;
-import static org.springframework.hateoas.mvc.ControllerLinkBuilder.methodOn;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.*;
 
 @RunWith(MockitoJUnitRunner.class)
@@ -56,27 +57,6 @@ public class TeamControllerTest {
         mockMvc = MockMvcBuilders.standaloneSetup(teamController).setControllerAdvice(exceptionHandler).build();
     }
 
-    private League buildLeague(Long id, String leagueName, String leagueCountry) {
-        League testLeague = new League(leagueName, leagueCountry);
-        testLeague.setId(id);
-        return testLeague;
-    }
-
-    private Team buildTeam(Long id, String teamName, League league) {
-        Team testTeam = new Team(teamName, league);
-        testTeam.setId(id);
-        return testTeam;
-    }
-
-    private TeamResource buildTeamResource(Team team) throws Exception {
-        LeagueResource leagueResource = new LeagueResource(team.getLeague(),
-                linkTo(LeagueController.class).withRel("leagues"),
-                linkTo(methodOn(LeagueController.class).getLeague(team.getLeague().getId())).withSelfRel());
-        return new TeamResource(team,
-                                leagueResource,
-                                linkTo(TeamController.class).withRel("teams"),
-                                linkTo(methodOn(TeamController.class).getTeam(team.getId())).withSelfRel());
-    }
 
     @Test
     public void getTeamsReturnsEmptyResourcesCorrectly() throws Exception {
