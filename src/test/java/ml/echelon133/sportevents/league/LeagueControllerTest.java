@@ -5,6 +5,8 @@ import com.jayway.jsonpath.DocumentContext;
 import com.jayway.jsonpath.JsonPath;
 import ml.echelon133.sportevents.exception.APIExceptionHandler;
 import ml.echelon133.sportevents.exception.ResourceDoesNotExistException;
+import ml.echelon133.sportevents.team.Team;
+import ml.echelon133.sportevents.team.TeamResource;
 import ml.echelon133.sportevents.team.TeamResourceAssembler;
 import org.junit.Before;
 import org.junit.Test;
@@ -114,6 +116,50 @@ public class LeagueControllerTest {
 
         // When
         MockHttpServletResponse response = mockMvc.perform(get("/api/leagues/1")
+                .accept(MediaType.APPLICATION_JSON)).andReturn().getResponse();
+
+        // Then
+        assertThat(response.getStatus()).isEqualTo(HttpStatus.NOT_FOUND.value());
+        assertThat(response.getContentAsString()).contains("League with this id does not exist");
+    }
+
+    @Test
+    public void getLeagueTeamsReturnsExistingResourceCorrectly() throws Exception {
+        League league = buildLeague(1L, "Test league", "Test country");
+        Team team = buildTeam(10L,"Test team", league);
+        TeamResource teamResource = buildTeamResource(team);
+
+        // Given
+        given(leagueService.findById(1L)).willReturn(league);
+        given(teamResourceAssembler.toResources(league.getTeams())).willReturn(Collections.singletonList(teamResource));
+
+        // When
+        MockHttpServletResponse response = mockMvc.perform(get("/api/leagues/1/teams")
+                .accept(MediaType.APPLICATION_JSON)).andReturn().getResponse();
+
+        // Then
+        DocumentContext json = JsonPath.parse(response.getContentAsString());
+
+        assertThat(response.getStatus()).isEqualTo(HttpStatus.OK.value());
+        assertThat(json.read("$.links[?(@.rel=='league-teams')].href").toString())
+                .contains("/api\\/leagues\\/" + league.getId().toString() + "\\/teams");
+        assertThat(json.read("$.content[0].links[?(@.rel=='teams')].href").toString()).contains("/api\\/teams");
+        assertThat(json.read("$.content[0].links[?(@.rel=='self')].href").toString())
+                .contains("/api\\/teams\\/" + team.getId());
+        assertThat(json.read("$.content[0].id").toString()).isEqualTo(team.getId().toString());
+        assertThat(json.read("$.content[0].name").toString()).isEqualTo(team.getName());
+        assertThat(json.read("$.content[0].league.id").toString()).isEqualTo(league.getId().toString());
+        assertThat(json.read("$.content[0].league.name").toString()).isEqualTo(league.getName());
+        assertThat(json.read("$.content[0].league.country").toString()).isEqualTo(league.getCountry());
+    }
+
+    @Test
+    public void getLeagueTeamsReturnsCorrectResponseWhenResourceDoesNotExist() throws Exception {
+        // Given
+        given(leagueService.findById(1L)).willThrow(new ResourceDoesNotExistException("League with this id does not exist"));
+
+        // When
+        MockHttpServletResponse response = mockMvc.perform(get("/api/leagues/1/teams")
                 .accept(MediaType.APPLICATION_JSON)).andReturn().getResponse();
 
         // Then
