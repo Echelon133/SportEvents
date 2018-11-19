@@ -6,14 +6,9 @@ import com.jayway.jsonpath.JsonPath;
 import ml.echelon133.sportevents.exception.APIExceptionHandler;
 import ml.echelon133.sportevents.exception.ResourceDoesNotExistException;
 import ml.echelon133.sportevents.league.League;
-import ml.echelon133.sportevents.league.LeagueController;
-import ml.echelon133.sportevents.league.LeagueResource;
 import ml.echelon133.sportevents.stadium.Stadium;
-import ml.echelon133.sportevents.stadium.StadiumController;
-import ml.echelon133.sportevents.stadium.StadiumResource;
 import ml.echelon133.sportevents.team.Team;
-import ml.echelon133.sportevents.team.TeamController;
-import ml.echelon133.sportevents.team.TeamResource;
+
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -30,15 +25,13 @@ import org.springframework.test.web.servlet.setup.MockMvcBuilders;
 
 import java.time.format.DateTimeParseException;
 import java.util.Collections;
-import java.util.Date;
 import java.util.List;
 
+import static ml.echelon133.sportevents.TestUtils.*;
 import static org.assertj.core.api.AssertionsForClassTypes.assertThat;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyLong;
 import static org.mockito.ArgumentMatchers.argThat;
-import static org.springframework.hateoas.mvc.ControllerLinkBuilder.linkTo;
-import static org.springframework.hateoas.mvc.ControllerLinkBuilder.methodOn;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.*;
 import static org.mockito.BDDMockito.given;
 
@@ -66,63 +59,6 @@ public class MatchControllerTest {
         JacksonTester.initFields(this, new ObjectMapper());
 
         mockMvc = MockMvcBuilders.standaloneSetup(matchController).setControllerAdvice(exceptionHandler).build();
-    }
-
-    private Stadium buildStadium(Long id, String stadiumName, String stadiumCity, Integer stadiumCapacity) {
-        Stadium testStadium = new Stadium(stadiumName, stadiumCity, stadiumCapacity);
-        testStadium.setId(id);
-        return testStadium;
-    }
-
-    private League buildLeague(Long id, String leagueName, String leagueCountry) {
-        League testLeague = new League(leagueName, leagueCountry);
-        testLeague.setId(id);
-        return testLeague;
-    }
-
-    private Team buildTeam(Long id, String teamName, League league) {
-        Team testTeam = new Team(teamName, league);
-        testTeam.setId(id);
-        return testTeam;
-    }
-
-    private Match buildMatch(Long id, Team teamA, Team teamB, League league, Stadium stadium) {
-        Match testMatch = new Match(new Date(), teamA, teamB, league, stadium);
-        testMatch.setId(id);
-        return testMatch;
-    }
-
-    private MatchResource buildMatchResource(Match match) throws Exception {
-        LeagueResource leagueResource;
-        StadiumResource stadiumResource;
-
-        try {
-            leagueResource = new LeagueResource(match.getLeague(),
-                    linkTo(LeagueController.class).withRel("leagues"),
-                    linkTo(methodOn(LeagueController.class).getLeague(match.getLeague().getId())).withSelfRel());
-        } catch (NullPointerException ex) {
-            leagueResource = null;
-        }
-
-        try {
-            stadiumResource = new StadiumResource(match.getStadium(),
-                    linkTo(StadiumController.class).withRel("stadiums"),
-                    linkTo(methodOn(StadiumController.class).getStadium(match.getStadium().getId())).withSelfRel());
-        } catch (NullPointerException ex) {
-            stadiumResource = null;
-        }
-
-        TeamResource teamAResource = new TeamResource(match.getTeamA(), leagueResource,
-                linkTo(TeamController.class).withRel("teams"),
-                linkTo(methodOn(TeamController.class).getTeam(match.getTeamA().getId())).withSelfRel());
-
-        TeamResource teamBResource = new TeamResource(match.getTeamB(), leagueResource,
-                linkTo(TeamController.class).withRel("teams"),
-                linkTo(methodOn(TeamController.class).getTeam(match.getTeamB().getId())).withSelfRel());
-
-        return new MatchResource(match, teamAResource, teamBResource, leagueResource, stadiumResource,
-                linkTo(MatchController.class).withRel("matches"),
-                linkTo(methodOn(MatchController.class).getMatch(match.getId())).withSelfRel());
     }
 
     @Test
