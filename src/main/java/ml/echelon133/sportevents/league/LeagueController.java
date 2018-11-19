@@ -2,6 +2,9 @@ package ml.echelon133.sportevents.league;
 
 import ml.echelon133.sportevents.exception.FailedValidationException;
 import ml.echelon133.sportevents.exception.ResourceDoesNotExistException;
+import ml.echelon133.sportevents.team.TeamController;
+import ml.echelon133.sportevents.team.TeamResource;
+import ml.echelon133.sportevents.team.TeamResourceAssembler;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.hateoas.Resources;
 import org.springframework.http.HttpStatus;
@@ -15,31 +18,44 @@ import java.util.Collections;
 import java.util.Map;
 
 import static org.springframework.hateoas.mvc.ControllerLinkBuilder.linkTo;
+import static org.springframework.hateoas.mvc.ControllerLinkBuilder.methodOn;
 
 @RestController
 @RequestMapping("/api/leagues")
 public class LeagueController {
 
     private LeagueService leagueService;
-    private LeagueResourceAssembler resourceAssembler;
+    private LeagueResourceAssembler leagueResourceAssembler;
+    private TeamResourceAssembler teamResourceAssembler;
 
     @Autowired
-    public LeagueController(LeagueService leagueService, LeagueResourceAssembler resourceAssembler) {
+    public LeagueController(LeagueService leagueService,
+                            LeagueResourceAssembler leagueResourceAssembler,
+                            TeamResourceAssembler teamResourceAssembler) {
         this.leagueService = leagueService;
-        this.resourceAssembler = resourceAssembler;
+        this.leagueResourceAssembler = leagueResourceAssembler;
+        this.teamResourceAssembler = teamResourceAssembler;
     }
 
     @GetMapping
     public ResponseEntity<Resources<LeagueResource>> getLeagues() {
-        Resources<LeagueResource> resources = new Resources<>(resourceAssembler.toResources(leagueService.findAll()));
+        Resources<LeagueResource> resources = new Resources<>(leagueResourceAssembler.toResources(leagueService.findAll()));
         resources.add(linkTo(LeagueController.class).withRel("leagues"));
         return new ResponseEntity<>(resources, HttpStatus.OK);
     }
 
     @GetMapping("/{leagueId}")
     public ResponseEntity<LeagueResource> getLeague(@PathVariable Long leagueId) throws ResourceDoesNotExistException {
-        LeagueResource leagueResource = resourceAssembler.toResource(leagueService.findById(leagueId));
+        LeagueResource leagueResource = leagueResourceAssembler.toResource(leagueService.findById(leagueId));
         return new ResponseEntity<>(leagueResource, HttpStatus.OK);
+    }
+
+    @GetMapping("/{leagueId}/teams")
+    public ResponseEntity<Resources<TeamResource>> getLeagueTeams(@PathVariable Long leagueId) throws ResourceDoesNotExistException {
+        League league = leagueService.findById(leagueId);
+        Resources<TeamResource> resources = new Resources<>(teamResourceAssembler.toResources(league.getTeams()));
+        resources.add(linkTo(methodOn(LeagueController.class).getLeagueTeams(leagueId)).withRel("league-teams"));
+        return new ResponseEntity<>(resources, HttpStatus.OK);
     }
 
     @PostMapping
@@ -52,15 +68,15 @@ public class LeagueController {
 
         League league = leagueService.convertDtoToEntity(leagueDto);
         League savedLeague = leagueService.save(league);
-        LeagueResource leagueResource = resourceAssembler.toResource(savedLeague);
+        LeagueResource leagueResource = leagueResourceAssembler.toResource(savedLeague);
         return new ResponseEntity<>(leagueResource, HttpStatus.CREATED);
     }
 
     @PutMapping("/{leagueId}")
     public ResponseEntity<LeagueResource> replaceLeague(@PathVariable Long leagueId,
-                                                       @Valid @RequestBody LeagueDto leagueDto,
-                                                       BindingResult result) throws FailedValidationException,
-                                                                                    ResourceDoesNotExistException {
+                                                        @Valid @RequestBody LeagueDto leagueDto,
+                                                        BindingResult result) throws FailedValidationException,
+                                                                                     ResourceDoesNotExistException {
         if (result.hasErrors()) {
             throw new FailedValidationException(result.getFieldErrors());
         }
@@ -72,7 +88,7 @@ public class LeagueController {
         replacementEntity.setId(leagueToReplace.getId());
 
         League savedLeague = leagueService.save(replacementEntity);
-        LeagueResource leagueResource = resourceAssembler.toResource(savedLeague);
+        LeagueResource leagueResource = leagueResourceAssembler.toResource(savedLeague);
         return new ResponseEntity<>(leagueResource, HttpStatus.OK);
     }
 
