@@ -21,6 +21,7 @@ import org.springframework.test.web.servlet.setup.MockMvcBuilders;
 
 import java.util.Collections;
 
+import static ml.echelon133.sportevents.TestUtils.buildStadium;
 import static org.assertj.core.api.AssertionsForClassTypes.assertThat;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyIterable;
@@ -77,8 +78,7 @@ public class StadiumControllerTest {
 
     @Test
     public void getStadiumsReturnsExistingResourcesCorrectly() throws Exception {
-        Stadium stadium = new Stadium("Test stadium", "Test city", 40000);
-        stadium.setId(1L);
+        Stadium stadium = buildStadium(1L, "Test stadium", "Test city", 40000);
 
         // Given
         given(stadiumService.findAll()).willReturn(Collections.singletonList(stadium));
@@ -117,8 +117,7 @@ public class StadiumControllerTest {
 
     @Test
     public void getStadiumReturnsExistingResourceCorrectly() throws Exception {
-        Stadium stadium = new Stadium("Test stadium", "Test city", 40000);
-        stadium.setId(1L);
+        Stadium stadium = buildStadium(1L, "Test stadium", "Test city", 40000);
 
         // Given
         given(stadiumService.findById(1L)).willReturn(stadium);
@@ -204,8 +203,7 @@ public class StadiumControllerTest {
         JsonContent<StadiumDto> stadiumDtoJsonContent = jsonStadiumDto.write(stadiumDto);
 
         // "Saved" stadium
-        Stadium stadium = new Stadium(stadiumDto.getName(), stadiumDto.getCity(), stadiumDto.getCapacity());
-        stadium.setId(1L);
+        Stadium stadium = buildStadium(1L, stadiumDto.getName(), stadiumDto.getCity(), stadiumDto.getCapacity());
 
         // Given
         given(stadiumService.convertDtoToEntity(any(StadiumDto.class))).willReturn(stadium);
@@ -318,8 +316,7 @@ public class StadiumControllerTest {
         JsonContent<StadiumDto> stadiumDtoJsonContent = jsonStadiumDto.write(stadiumDto);
 
         // "Saved" stadium
-        Stadium stadium = new Stadium(stadiumDto.getName(), stadiumDto.getCity(), stadiumDto.getCapacity());
-        stadium.setId(1L);
+        Stadium stadium = buildStadium(1L, stadiumDto.getName(), stadiumDto.getCity(), stadiumDto.getCapacity());
 
         // Given
         given(stadiumService.findById(1L)).willReturn(stadium);

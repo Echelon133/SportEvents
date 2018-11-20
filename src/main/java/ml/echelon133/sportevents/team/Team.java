@@ -2,8 +2,11 @@ package ml.echelon133.sportevents.team;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import ml.echelon133.sportevents.league.League;
+import ml.echelon133.sportevents.match.Match;
 
 import javax.persistence.*;
+import java.util.ArrayList;
+import java.util.List;
 
 @Entity
 public class Team {
@@ -19,9 +22,19 @@ public class Team {
     @JsonIgnore
     private League league;
 
+    @ManyToMany(cascade = CascadeType.ALL, fetch = FetchType.LAZY)
+    @JoinTable(
+            name = "team_matches",
+            joinColumns = @JoinColumn(name = "team_id", referencedColumnName = "id"),
+            inverseJoinColumns = @JoinColumn(name = "match_id", referencedColumnName = "id")
+    )
+    @JsonIgnore
+    private List<Match> matches;
+
     public Team() {}
     public Team(String name, League league) {
         this.name = name;
+        this.matches = new ArrayList<>();
         setLeague(league);
     }
 
@@ -48,5 +61,17 @@ public class Team {
     public void setLeague(League league) {
         league.addTeam(this);
         this.league = league;
+    }
+
+    public List<Match> getMatches() {
+        return matches;
+    }
+
+    public void setMatches(List<Match> matches) {
+        this.matches = matches;
+    }
+
+    public void addMatch(Match match) {
+        this.matches.add(match);
     }
 }

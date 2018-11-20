@@ -63,8 +63,8 @@ public class Match {
     public Match(Date startDate, Team teamA, Team teamB) {
         this();
         this.startDate = startDate;
-        this.teamA = teamA;
-        this.teamB = teamB;
+        setTeamA(teamA);
+        setTeamB(teamB);
     }
 
     public Match(Date startDate, Team teamA, Team teamB, League league) {
@@ -90,6 +90,7 @@ public class Match {
     }
 
     public void setTeamA(Team teamA) {
+        teamA.addMatch(this);
         this.teamA = teamA;
     }
 
@@ -98,6 +99,7 @@ public class Match {
     }
 
     public void setTeamB(Team teamB) {
+        teamB.addMatch(this);
         this.teamB = teamB;
     }
 

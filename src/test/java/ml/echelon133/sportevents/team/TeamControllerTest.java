@@ -6,6 +6,9 @@ import com.jayway.jsonpath.JsonPath;
 import ml.echelon133.sportevents.exception.APIExceptionHandler;
 import ml.echelon133.sportevents.exception.ResourceDoesNotExistException;
 import ml.echelon133.sportevents.league.*;
+import ml.echelon133.sportevents.match.Match;
+import ml.echelon133.sportevents.match.MatchResource;
+import ml.echelon133.sportevents.match.MatchResourceAssembler;
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -23,11 +26,10 @@ import org.springframework.test.web.servlet.setup.MockMvcBuilders;
 import java.util.Collections;
 import java.util.List;
 
+import static ml.echelon133.sportevents.TestUtils.*;
 import static org.assertj.core.api.AssertionsForClassTypes.assertThat;
 import static org.mockito.ArgumentMatchers.*;
 import static org.mockito.BDDMockito.given;
-import static org.springframework.hateoas.mvc.ControllerLinkBuilder.linkTo;
-import static org.springframework.hateoas.mvc.ControllerLinkBuilder.methodOn;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.*;
 
 @RunWith(MockitoJUnitRunner.class)
@@ -40,6 +42,9 @@ public class TeamControllerTest {
 
     @Mock
     private TeamResourceAssembler teamResourceAssembler;
+
+    @Mock
+    private MatchResourceAssembler matchResourceAssembler;
 
     @InjectMocks
     private APIExceptionHandler exceptionHandler;
@@ -56,27 +61,6 @@ public class TeamControllerTest {
         mockMvc = MockMvcBuilders.standaloneSetup(teamController).setControllerAdvice(exceptionHandler).build();
     }
 
-    private League buildLeague(Long id, String leagueName, String leagueCountry) {
-        League testLeague = new League(leagueName, leagueCountry);
-        testLeague.setId(id);
-        return testLeague;
-    }
-
-    private Team buildTeam(Long id, String teamName, League league) {
-        Team testTeam = new Team(teamName, league);
-        testTeam.setId(id);
-        return testTeam;
-    }
-
-    private TeamResource buildTeamResource(Team team) throws Exception {
-        LeagueResource leagueResource = new LeagueResource(team.getLeague(),
-                linkTo(LeagueController.class).withRel("leagues"),
-                linkTo(methodOn(LeagueController.class).getLeague(team.getLeague().getId())).withSelfRel());
-        return new TeamResource(team,
-                                leagueResource,
-                                linkTo(TeamController.class).withRel("teams"),
-                                linkTo(methodOn(TeamController.class).getTeam(team.getId())).withSelfRel());
-    }
 
     @Test
     public void getTeamsReturnsEmptyResourcesCorrectly() throws Exception {
@@ -214,6 +198,60 @@ public class TeamControllerTest {
                 .contains("/api\\/leagues");
         assertThat(json.read("$.league.links[?(@.rel=='self')].href").toString())
                 .contains("/api\\/leagues\\/" + testTeam.getLeague().getId().toString());
+    }
+
+    @Test
+    public void getTeamMatchesReturnsCorrectResponseWhenResourceDoesNotExist() throws Exception {
+        // Given
+        given(teamService.findById(anyLong())).willThrow(new ResourceDoesNotExistException("Team with this id does not exist"));
+
+        // When
+        MockHttpServletResponse response = mockMvc.perform(get("/api/teams/1/matches")
+                .accept(MediaType.APPLICATION_JSON)).andReturn().getResponse();
+
+        // Then
+        assertThat(response.getStatus()).isEqualTo(HttpStatus.NOT_FOUND.value());
+        assertThat(response.getContentAsString()).contains("Team with this id does not exist");
+    }
+
+    @Test
+    public void getTeamMatchesReturnsExistingResourceCorrectly() throws Exception {
+        League league = buildLeague(5L, "Test league", "Test country");
+        Team teamA = buildTeam(1L, "TeamA", league);
+        Team teamB = buildTeam(2L, "TeamB", league);
+        Match match = buildMatch(20L, teamA, teamB, league, null);
+
+        List<Match> matches = teamA.getMatches();
+        MatchResource matchResource = buildMatchResource(match);
+
+        // Given
+        given(teamService.findById(1L)).willReturn(teamA);
+        given(matchResourceAssembler.toResources(matches)).willReturn(Collections.singletonList(matchResource));
+
+        // When
+        MockHttpServletResponse response = mockMvc.perform(get("/api/teams/1/matches")
+                .accept(MediaType.APPLICATION_JSON)).andReturn().getResponse();
+
+        // Then
+        DocumentContext json = JsonPath.parse(response.getContentAsString());
+
+        assertThat(response.getStatus()).isEqualTo(HttpStatus.OK.value());
+        assertThat(json.read("$.links[?(@.rel=='team-matches')].href").toString())
+                .contains("/api\\/teams\\/" + teamA.getId().toString() + "\\/matches");
+        assertThat(json.read("$.content[0].id").toString()).isEqualTo(match.getId().toString());
+        assertThat(json.read("$.content[0].startDate").toString())
+                .isEqualTo(((Long) match.getStartDate().getTime()).toString());
+        assertThat(json.read("$.content[0].status").toString()).isEqualTo(match.getStatus().toString());
+        assertThat(json.read("$.content[0].teamA.id").toString()).isEqualTo(match.getTeamA().getId().toString());
+        assertThat(json.read("$.content[0].teamA.name").toString()).isEqualTo(match.getTeamA().getName());
+        assertThat(json.read("$.content[0].teamB.id").toString()).isEqualTo(match.getTeamB().getId().toString());
+        assertThat(json.read("$.content[0].teamB.name").toString()).isEqualTo(match.getTeamB().getName());
+        assertThat(json.read("$.content[0].league.id").toString()).isEqualTo(match.getLeague().getId().toString());
+        assertThat(json.read("$.content[0].league.name").toString()).isEqualTo(match.getLeague().getName());
+        assertThat(json.read("$.content[0].league.country").toString()).isEqualTo(match.getLeague().getCountry());
+        assertThat(json.read("$.content[0].links[?(@.rel=='matches')].href").toString()).contains("/api\\/matches");
+        assertThat(json.read("$.content[0].links[?(@.rel=='self')].href").toString())
+                .contains("/api\\/matches\\/" + match.getId());
     }
 
     @Test

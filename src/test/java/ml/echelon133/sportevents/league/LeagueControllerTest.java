@@ -5,6 +5,9 @@ import com.jayway.jsonpath.DocumentContext;
 import com.jayway.jsonpath.JsonPath;
 import ml.echelon133.sportevents.exception.APIExceptionHandler;
 import ml.echelon133.sportevents.exception.ResourceDoesNotExistException;
+import ml.echelon133.sportevents.team.Team;
+import ml.echelon133.sportevents.team.TeamResource;
+import ml.echelon133.sportevents.team.TeamResourceAssembler;
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -22,6 +25,7 @@ import org.springframework.test.web.servlet.setup.MockMvcBuilders;
 import java.util.Arrays;
 import java.util.Collections;
 
+import static ml.echelon133.sportevents.TestUtils.*;
 import static org.assertj.core.api.AssertionsForClassTypes.assertThat;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyIterable;
@@ -37,7 +41,10 @@ public class LeagueControllerTest {
     private LeagueService leagueService;
 
     @Mock
-    private LeagueResourceAssembler resourceAssembler;
+    private LeagueResourceAssembler leagueResourceAssembler;
+
+    @Mock
+    private TeamResourceAssembler teamResourceAssembler;
 
     @InjectMocks
     private LeagueController leagueController;
@@ -53,10 +60,11 @@ public class LeagueControllerTest {
 
         mockMvc = MockMvcBuilders.standaloneSetup(leagueController).setControllerAdvice(exceptionHandler).build();
 
-        // We always use actual toResource/toResources implementation
-        given(resourceAssembler.toResource(any(League.class))).willCallRealMethod();
-        given(resourceAssembler.toResources(anyIterable())).willCallRealMethod();
+        // We always use actual toResource/toResources implementation of LeagueResourceAssembler
+        given(leagueResourceAssembler.toResource(any(League.class))).willCallRealMethod();
+        given(leagueResourceAssembler.toResources(anyIterable())).willCallRealMethod();
     }
+
 
     @Test
     public void getLeaguesReturnsEmptyResourcesCorrectly() throws Exception {
@@ -77,8 +85,7 @@ public class LeagueControllerTest {
 
     @Test
     public void getLeaguesReturnsExistingResourcesCorrectly() throws Exception {
-        League league = new League("Test league", "Test country");
-        league.setId(1L);
+        League league = buildLeague(1L, "Test league", "Test country");
 
         // Given
         given(leagueService.findAll()).willReturn(Arrays.asList(league));
@@ -96,6 +103,8 @@ public class LeagueControllerTest {
         assertThat(json.read("$.content[0].name").toString()).isEqualTo(league.getName());
         assertThat(json.read("$.content[0].country").toString()).isEqualTo(league.getCountry());
         assertThat(json.read("$.content[0].links[?(@.rel=='leagues')].href").toString()).contains("/api\\/leagues");
+        assertThat(json.read("$.content[0].links[?(@.rel=='league-teams')].href").toString())
+                .contains("/api\\/leagues\\/" + league.getId().toString() + "\\/teams");
         assertThat(json.read("$.content[0].links[?(@.rel=='self')].href").toString())
                 .contains("/api\\/leagues\\/" + league.getId().toString());
     }
@@ -115,26 +124,47 @@ public class LeagueControllerTest {
     }
 
     @Test
-    public void getLeagueReturnsExistingResourceCorrectly() throws Exception {
-        League league = new League("Test league", "Test country");
-        league.setId(1L);
+    public void getLeagueTeamsReturnsExistingResourceCorrectly() throws Exception {
+        League league = buildLeague(1L, "Test league", "Test country");
+        Team team = buildTeam(10L,"Test team", league);
+        TeamResource teamResource = buildTeamResource(team);
 
         // Given
         given(leagueService.findById(1L)).willReturn(league);
+        given(teamResourceAssembler.toResources(league.getTeams())).willReturn(Collections.singletonList(teamResource));
 
         // When
-        MockHttpServletResponse response = mockMvc.perform(get("/api/leagues/1")
+        MockHttpServletResponse response = mockMvc.perform(get("/api/leagues/1/teams")
                 .accept(MediaType.APPLICATION_JSON)).andReturn().getResponse();
 
         // Then
         DocumentContext json = JsonPath.parse(response.getContentAsString());
 
         assertThat(response.getStatus()).isEqualTo(HttpStatus.OK.value());
-        assertThat(json.read("$.links[?(@.rel=='leagues')].href").toString()).contains("/api\\/leagues");
-        assertThat(json.read("$.links[?(@.rel=='self')].href").toString()).contains("/api\\/leagues\\/" + league.getId());
-        assertThat(json.read("$.id").toString()).isEqualTo(league.getId().toString());
-        assertThat(json.read("$.name").toString()).isEqualTo(league.getName());
-        assertThat(json.read("$.country").toString()).isEqualTo(league.getCountry());
+        assertThat(json.read("$.links[?(@.rel=='league-teams')].href").toString())
+                .contains("/api\\/leagues\\/" + league.getId().toString() + "\\/teams");
+        assertThat(json.read("$.content[0].links[?(@.rel=='teams')].href").toString()).contains("/api\\/teams");
+        assertThat(json.read("$.content[0].links[?(@.rel=='self')].href").toString())
+                .contains("/api\\/teams\\/" + team.getId());
+        assertThat(json.read("$.content[0].id").toString()).isEqualTo(team.getId().toString());
+        assertThat(json.read("$.content[0].name").toString()).isEqualTo(team.getName());
+        assertThat(json.read("$.content[0].league.id").toString()).isEqualTo(league.getId().toString());
+        assertThat(json.read("$.content[0].league.name").toString()).isEqualTo(league.getName());
+        assertThat(json.read("$.content[0].league.country").toString()).isEqualTo(league.getCountry());
+    }
+
+    @Test
+    public void getLeagueTeamsReturnsCorrectResponseWhenResourceDoesNotExist() throws Exception {
+        // Given
+        given(leagueService.findById(1L)).willThrow(new ResourceDoesNotExistException("League with this id does not exist"));
+
+        // When
+        MockHttpServletResponse response = mockMvc.perform(get("/api/leagues/1/teams")
+                .accept(MediaType.APPLICATION_JSON)).andReturn().getResponse();
+
+        // Then
+        assertThat(response.getStatus()).isEqualTo(HttpStatus.NOT_FOUND.value());
+        assertThat(response.getContentAsString()).contains("League with this id does not exist");
     }
 
     @Test
@@ -183,8 +213,7 @@ public class LeagueControllerTest {
         JsonContent<LeagueDto> leagueDtoJsonContent = jsonLeagueDto.write(leagueDto);
 
         // "Saved" league
-        League league = new League(leagueDto.getName(), leagueDto.getCountry());
-        league.setId(1L);
+        League league = buildLeague(1L, leagueDto.getName(), leagueDto.getCountry());
 
         // Given
         given(leagueService.convertDtoToEntity(any(LeagueDto.class))).willReturn(league);
@@ -277,8 +306,7 @@ public class LeagueControllerTest {
         JsonContent<LeagueDto> leagueDtoJsonContent = jsonLeagueDto.write(leagueDto);
 
         // "Saved" league
-        League league = new League(leagueDto.getName(), leagueDto.getCountry());
-        league.setId(1L);
+        League league = buildLeague(1L, leagueDto.getName(), leagueDto.getCountry());
 
         // Given
         given(leagueService.findById(1L)).willReturn(league);

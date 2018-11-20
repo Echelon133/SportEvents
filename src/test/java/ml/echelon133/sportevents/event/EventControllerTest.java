@@ -7,11 +7,8 @@ import ml.echelon133.sportevents.event.types.*;
 import ml.echelon133.sportevents.event.types.dto.*;
 import ml.echelon133.sportevents.exception.APIExceptionHandler;
 import ml.echelon133.sportevents.exception.ResourceDoesNotExistException;
-import ml.echelon133.sportevents.league.League;
 import ml.echelon133.sportevents.match.Match;
 import ml.echelon133.sportevents.match.MatchService;
-import ml.echelon133.sportevents.stadium.Stadium;
-import ml.echelon133.sportevents.team.Team;
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -30,9 +27,9 @@ import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.test.web.servlet.setup.MockMvcBuilders;
 
 import java.util.Arrays;
-import java.util.Date;
 import java.util.List;
 
+import static ml.echelon133.sportevents.TestUtils.getRandomMatch;
 import static org.assertj.core.api.AssertionsForClassTypes.assertThat;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyLong;
@@ -90,15 +87,9 @@ public class EventControllerTest {
                 .build();
     }
 
-    private Match buildMatch(Long id, Team teamA, Team teamB, League league, Stadium stadium) {
-        Match testMatch = new Match(new Date(), teamA, teamB, league, stadium);
-        testMatch.setId(id);
-        return testMatch;
-    }
-
     @Test
     public void getEventsReturnsEmptyResourcesCorrectly() throws Exception {
-        Match match = buildMatch(10L, null, null, null, null);
+        Match match = getRandomMatch(10L);
 
         // Given
         given(matchService.findById(10L)).willReturn(match);
@@ -128,7 +119,7 @@ public class EventControllerTest {
 
     @Test
     public void getEventsReturnsAllEventsCorrectlyDeserialized() throws Exception {
-        Match match = buildMatch(1L, null, null, null, null);
+        Match match = getRandomMatch(1L);
 
         ManagingEvent event1 = new ManagingEvent(1L, "Test msg",
                 AbstractMatchEvent.EventType.START_FIRST_HALF, match);
@@ -346,7 +337,7 @@ public class EventControllerTest {
         MatchEventDto matchEventDto = new ManagingEventDto(1L, "Test", "START_FIRST_HALF");
         JsonContent<MatchEventDto> jsonContent = jsonMatchEventDto.write(matchEventDto);
 
-        Match match = buildMatch(10L, null, null, null, null);
+        Match match = getRandomMatch(10L);
 
         AbstractMatchEvent matchEvent = new ManagingEvent(matchEventDto.getTime(), matchEventDto.getMessage(),
                                                           AbstractMatchEvent.EventType.valueOf(matchEventDto.getType()), match);
@@ -377,7 +368,7 @@ public class EventControllerTest {
         MatchEventDto matchEventDto = new ManagingEventDto(1L, "Test", "START_FIRST_HALF");
         JsonContent<MatchEventDto> jsonContent = jsonMatchEventDto.write(matchEventDto);
 
-        Match match = buildMatch(10L, null, null, null, null);
+        Match match = getRandomMatch(10L);
 
         AbstractMatchEvent matchEvent = new ManagingEvent(matchEventDto.getTime(), matchEventDto.getMessage(),
                 AbstractMatchEvent.EventType.valueOf(matchEventDto.getType()), match);
