@@ -6,6 +6,7 @@
 |------------------------ |----------  |----------------------------|-------------                           |
 |/api/leagues             | GET        |                            | Get all leagues                        |
 |/api/leagues/{leagueId}  | GET        |                            | Get a league that has specified id     |
+|/api/leagues/{leagueId}/teams  | GET        |                      | Get all teams of a league that has specified id |
 |/api/leagues             | POST       | League JSON                | Create a new league from json data     |
 |/api/leagues/{leagueId}  | PUT        | League JSON                | Replace a league with new league data  |
 |/api/leagues/{leagueId}  | DELETE     |                            | Delete a league that has specified id  |
@@ -17,6 +18,7 @@
 |/api/teams               | GET        |                            | Get all teams                          |
 |/api/teams?nameContains= | GET        |                            | Filter teams by name                   |
 |/api/teams/{teamId}      | GET        |                            | Get a team that has specified id       |
+|/api/teams/{teamId}/matches      | GET        |                    | Get all matches of a team that has specified id |
 |/api/teams               | POST       | Team JSON                  | Create a new team from json data       |
 |/api/teams/{teamId}      | PUT        | Team JSON                  | Replace a team with new team data      |
 |/api/teams/{teamId}      | DELETE     |                            | Delete a team that has specified id    |
