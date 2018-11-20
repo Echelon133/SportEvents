@@ -18,6 +18,7 @@ import java.time.*;
 import java.time.format.DateTimeParseException;
 import java.util.*;
 
+import static ml.echelon133.sportevents.TestUtils.getRandomMatch;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.BDDMockito.given;
 import static org.assertj.core.api.AssertionsForClassTypes.assertThat;
@@ -52,7 +53,7 @@ public class MatchServiceTest {
 
     @Test
     public void findAllWithStatusConvertsStringToEnumValuesCorrectly() {
-        Match match = new Match(null, null, null);
+        Match match = getRandomMatch();
         List<Match> matches = Collections.singletonList(match);
 
         // Given
@@ -87,8 +88,7 @@ public class MatchServiceTest {
 
     @Test
     public void findByIdReturnsCorrectMatchObject() throws Exception {
-        Match match = new Match(null, null, null);
-        match.setId(1L);
+        Match match = getRandomMatch();
 
         // Given
         given(matchRepository.findById(1L)).willReturn(Optional.of(match));
@@ -193,8 +193,7 @@ public class MatchServiceTest {
 
     @Test
     public void findAllWithDateWithinReturnsCorrectResponseForDayArgument() {
-        Match match = new Match(new Date(), null, null);
-        match.setId(1L);
+        Match match = getRandomMatch();
 
         List<Match> matches = Collections.singletonList(match);
 
@@ -217,8 +216,7 @@ public class MatchServiceTest {
 
     @Test
     public void findAllWithDateWithinReturnsCorrectResponseForThreeDaysArgument() {
-        Match match = new Match(new Date(), null, null);
-        match.setId(1L);
+        Match match = getRandomMatch();
 
         List<Match> matches = Collections.singletonList(match);
 
@@ -240,8 +238,7 @@ public class MatchServiceTest {
 
     @Test
     public void findAllWithDateWithinReturnsCorrectResponseForWeekArgument() {
-        Match match = new Match(new Date(), null, null);
-        match.setId(1L);
+        Match match = getRandomMatch();
 
         List<Match> matches = Collections.singletonList(match);
 
