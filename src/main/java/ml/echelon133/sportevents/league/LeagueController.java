@@ -2,7 +2,6 @@ package ml.echelon133.sportevents.league;
 
 import ml.echelon133.sportevents.exception.FailedValidationException;
 import ml.echelon133.sportevents.exception.ResourceDoesNotExistException;
-import ml.echelon133.sportevents.team.TeamController;
 import ml.echelon133.sportevents.team.TeamResource;
 import ml.echelon133.sportevents.team.TeamResourceAssembler;
 import org.springframework.beans.factory.annotation.Autowired;
