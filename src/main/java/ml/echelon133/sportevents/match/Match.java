@@ -54,6 +54,8 @@ public class Match {
     @Embedded
     private ScoreInfo result;
 
+    private String websocketPath;
+
     public Match() {
         this.result = new ScoreInfo();
         this.status = Status.NOT_STARTED;
@@ -82,6 +84,9 @@ public class Match {
     }
 
     public void setId(Long id) {
+        // setId is called by the save method
+        // we need to have both Id and websocketUrl set at the same time (both depend on Id value)
+        setWebsocketPath("/matches/" + id);
         this.id = id;
     }
 
@@ -154,5 +159,13 @@ public class Match {
     public void addEvent(AbstractMatchEvent event) {
         event.setMatch(this);
         this.events.add(event);
+    }
+
+    public String getWebsocketPath() {
+        return websocketPath;
+    }
+
+    public void setWebsocketPath(String websocketPath) {
+        this.websocketPath = websocketPath;
     }
 }
