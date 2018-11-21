@@ -84,9 +84,6 @@ public class Match {
     }
 
     public void setId(Long id) {
-        // setId is called by the save method
-        // we need to have both Id and websocketUrl set at the same time (both depend on Id value)
-        setWebsocketPath("/matches/" + id);
         this.id = id;
     }
 
