@@ -76,7 +76,16 @@ public class MatchServiceImpl implements MatchService {
 
     @Override
     public Match save(Match match) {
-        return matchRepository.save(match);
+        Match savedMatch = matchRepository.save(match);
+        if (savedMatch.getWebsocketPath() == null) {
+            // If websocketPath is null, it means that the entity was saved just once before (right at the top of this method)
+            // This call below sets the websocketPath, because it depends on the Id value that can be accessed only
+            // after the entity was saved at least once
+            savedMatch.setWebsocketPath("/matches/" + savedMatch.getId());
+            // Save Match entity after we set the websocketPath
+            savedMatch = matchRepository.save(savedMatch);
+        }
+        return savedMatch;
     }
 
     @Override
