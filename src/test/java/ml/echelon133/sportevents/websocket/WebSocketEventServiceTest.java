@@ -1,10 +1,7 @@
 package ml.echelon133.sportevents.websocket;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
-import ml.echelon133.sportevents.event.types.AbstractMatchEvent;
-import ml.echelon133.sportevents.event.types.GoalEvent;
-import ml.echelon133.sportevents.event.types.StandardEvent;
-import ml.echelon133.sportevents.event.types.SubstitutionEvent;
+import ml.echelon133.sportevents.event.types.*;
 import ml.echelon133.sportevents.match.Match;
 
 import org.junit.Before;
@@ -137,6 +134,25 @@ public class WebSocketEventServiceTest {
         assertThat(receivedEvent.getMessage()).isEqualTo(substitutionEvent.getMessage());
         assertThat(receivedEvent.getPlayerIn()).isEqualTo(substitutionEvent.getPlayerIn());
         assertThat(receivedEvent.getPlayerOut()).isEqualTo(substitutionEvent.getPlayerOut());
+    }
+
+    @Test
+    public void sendEventOverWebSocketCorrectlySendsOutCardEvent() throws InterruptedException, ExecutionException, TimeoutException {
+        Match match = getRandomMatch();
+        CardEvent cardEvent = new CardEvent(1L, "Test msg",
+                AbstractMatchEvent.EventType.CARD, match, "Player1", CardEvent.CardColor.YELLOW);
+
+
+        // When
+        webSocketEventService.sendEventOverWebSocket(TESTED_DESTINATION, cardEvent);
+        CardEvent receivedEvent = (CardEvent) completableEvent.get(1, TimeUnit.SECONDS);
+
+        // Then
+        assertThat(receivedEvent.getType()).isEqualTo(cardEvent.getType());
+        assertThat(receivedEvent.getTime()).isEqualTo(cardEvent.getTime());
+        assertThat(receivedEvent.getMessage()).isEqualTo(cardEvent.getMessage());
+        assertThat(receivedEvent.getCardedPlayer()).isEqualTo(cardEvent.getCardedPlayer());
+        assertThat(receivedEvent.getCardColor()).isEqualTo(cardEvent.getCardColor());
     }
 
 
