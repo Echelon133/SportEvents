@@ -155,6 +155,25 @@ public class WebSocketEventServiceTest {
         assertThat(receivedEvent.getCardColor()).isEqualTo(cardEvent.getCardColor());
     }
 
+    @Test
+    public void sendEventOverWebSocketCorrectlySendsOutPenaltyEvent() throws InterruptedException, ExecutionException, TimeoutException {
+        Match match = getRandomMatch();
+        PenaltyEvent penaltyEvent = new PenaltyEvent(1L, "Test msg",
+                AbstractMatchEvent.EventType.PENALTY, match, match.getTeamA());
+
+
+        // When
+        webSocketEventService.sendEventOverWebSocket(TESTED_DESTINATION, penaltyEvent);
+        PenaltyEvent receivedEvent = (PenaltyEvent) completableEvent.get(1, TimeUnit.SECONDS);
+
+        // Then
+        assertThat(receivedEvent.getType()).isEqualTo(penaltyEvent.getType());
+        assertThat(receivedEvent.getTime()).isEqualTo(penaltyEvent.getTime());
+        assertThat(receivedEvent.getMessage()).isEqualTo(penaltyEvent.getMessage());
+        assertThat(receivedEvent.getTeam().getId()).isEqualTo(penaltyEvent.getTeam().getId());
+        assertThat(receivedEvent.getTeam().getName()).isEqualTo(penaltyEvent.getTeam().getName());
+    }
+
 
     private class EventStompFrameHandler implements StompFrameHandler {
 
