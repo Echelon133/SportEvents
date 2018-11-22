@@ -4,6 +4,7 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import ml.echelon133.sportevents.event.types.AbstractMatchEvent;
 import ml.echelon133.sportevents.event.types.GoalEvent;
 import ml.echelon133.sportevents.event.types.StandardEvent;
+import ml.echelon133.sportevents.event.types.SubstitutionEvent;
 import ml.echelon133.sportevents.match.Match;
 
 import org.junit.Before;
@@ -117,6 +118,25 @@ public class WebSocketEventServiceTest {
         assertThat(receivedEvent.getTeamScoring().getId()).isEqualTo(goalEvent.getTeamScoring().getId());
         assertThat(receivedEvent.getTeamScoring().getName()).isEqualTo(goalEvent.getTeamScoring().getName());
         assertThat(receivedEvent.getPlayerScoring()).isEqualTo(goalEvent.getPlayerScoring());
+    }
+
+    @Test
+    public void sendEventOverWebSocketCorrectlySendsOutSubstitutionEvent() throws InterruptedException, ExecutionException, TimeoutException {
+        Match match = getRandomMatch();
+        SubstitutionEvent substitutionEvent = new SubstitutionEvent(1L, "Test msg",
+                AbstractMatchEvent.EventType.SUBSTITUTION, match, "Player1", "Player2");
+
+
+        // When
+        webSocketEventService.sendEventOverWebSocket(TESTED_DESTINATION, substitutionEvent);
+        SubstitutionEvent receivedEvent = (SubstitutionEvent) completableEvent.get(1, TimeUnit.SECONDS);
+
+        // Then
+        assertThat(receivedEvent.getType()).isEqualTo(substitutionEvent.getType());
+        assertThat(receivedEvent.getTime()).isEqualTo(substitutionEvent.getTime());
+        assertThat(receivedEvent.getMessage()).isEqualTo(substitutionEvent.getMessage());
+        assertThat(receivedEvent.getPlayerIn()).isEqualTo(substitutionEvent.getPlayerIn());
+        assertThat(receivedEvent.getPlayerOut()).isEqualTo(substitutionEvent.getPlayerOut());
     }
 
 
