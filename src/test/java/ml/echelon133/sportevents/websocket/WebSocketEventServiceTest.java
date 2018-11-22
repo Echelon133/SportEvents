@@ -12,6 +12,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.messaging.converter.MappingJackson2MessageConverter;
 import org.springframework.messaging.converter.MessageConverter;
+import org.springframework.messaging.simp.SimpMessagingTemplate;
 import org.springframework.messaging.simp.stomp.StompFrameHandler;
 import org.springframework.messaging.simp.stomp.StompHeaders;
 import org.springframework.messaging.simp.stomp.StompSession;
@@ -46,7 +47,7 @@ public class WebSocketEventServiceTest {
     private CompletableFuture<AbstractMatchEvent> completableEvent;
 
     @Autowired
-    private WebSocketEventServiceImpl webSocketEventService;
+    private WebSocketEventService webSocketEventService;
 
     // Use a static block instead of a @BeforeClass method, because the CONVERTER field is final
     static {
