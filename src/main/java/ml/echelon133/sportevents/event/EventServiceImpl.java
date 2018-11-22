@@ -5,6 +5,7 @@ import ml.echelon133.sportevents.event.types.dto.*;
 import ml.echelon133.sportevents.match.Match;
 import ml.echelon133.sportevents.match.MatchService;
 import ml.echelon133.sportevents.team.Team;
+import ml.echelon133.sportevents.websocket.WebSocketEventService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
@@ -14,10 +15,12 @@ import java.util.*;
 public class EventServiceImpl implements EventService {
 
     private MatchService matchService;
+    private WebSocketEventService webSocketEventService;
 
     @Autowired
-    public EventServiceImpl(MatchService matchService) {
+    public EventServiceImpl(MatchService matchService, WebSocketEventService webSocketEventService) {
         this.matchService = matchService;
+        this.webSocketEventService = webSocketEventService;
     }
 
     private Team extractScoringTeamWithId(Long teamId, Match eventMatch) throws ProcessedEventRejectedException {
@@ -94,6 +97,7 @@ public class EventServiceImpl implements EventService {
 
         if (isValidEventTypeForStatus(match.getStatus(), event.getType())) {
             processedAndSaved = continueEventProcessing(event);
+            webSocketEventService.sendEventOverWebSocket(match.getWebsocketPath(), event);
         } else {
             String message = String
                     .format("Cannot send events of type %s when match status is %s%n", event.getType().toString(),
