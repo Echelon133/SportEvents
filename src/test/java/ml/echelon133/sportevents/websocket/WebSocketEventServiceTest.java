@@ -74,7 +74,7 @@ public class WebSocketEventServiceTest {
         );
         client.setMessageConverter(CONVERTER);
 
-        StompSession stompSession = client.connect(URL, new StompSessionHandlerAdapter() {}).get(2, TimeUnit.SECONDS);
+        StompSession stompSession = client.connect(URL, new StompSessionHandlerAdapter() {}).get(5, TimeUnit.SECONDS);
         stompSession.subscribe(TESTED_DESTINATION, new EventStompFrameHandler());
     }
 
@@ -89,7 +89,7 @@ public class WebSocketEventServiceTest {
 
         // When
         webSocketEventService.sendEventOverWebSocket(TESTED_DESTINATION, standardEvent);
-        StandardEvent receivedEvent = (StandardEvent) completableEvent.get(1, TimeUnit.SECONDS);
+        StandardEvent receivedEvent = (StandardEvent) completableEvent.get(5, TimeUnit.SECONDS);
 
         // Then
         assertThat(receivedEvent.getType()).isEqualTo(standardEvent.getType());
@@ -106,7 +106,7 @@ public class WebSocketEventServiceTest {
 
         // When
         webSocketEventService.sendEventOverWebSocket(TESTED_DESTINATION, goalEvent);
-        GoalEvent receivedEvent = (GoalEvent) completableEvent.get(1, TimeUnit.SECONDS);
+        GoalEvent receivedEvent = (GoalEvent) completableEvent.get(5, TimeUnit.SECONDS);
 
         // Then
         assertThat(receivedEvent.getType()).isEqualTo(goalEvent.getType());
@@ -126,7 +126,7 @@ public class WebSocketEventServiceTest {
 
         // When
         webSocketEventService.sendEventOverWebSocket(TESTED_DESTINATION, substitutionEvent);
-        SubstitutionEvent receivedEvent = (SubstitutionEvent) completableEvent.get(1, TimeUnit.SECONDS);
+        SubstitutionEvent receivedEvent = (SubstitutionEvent) completableEvent.get(5, TimeUnit.SECONDS);
 
         // Then
         assertThat(receivedEvent.getType()).isEqualTo(substitutionEvent.getType());
@@ -145,7 +145,7 @@ public class WebSocketEventServiceTest {
 
         // When
         webSocketEventService.sendEventOverWebSocket(TESTED_DESTINATION, cardEvent);
-        CardEvent receivedEvent = (CardEvent) completableEvent.get(1, TimeUnit.SECONDS);
+        CardEvent receivedEvent = (CardEvent) completableEvent.get(5, TimeUnit.SECONDS);
 
         // Then
         assertThat(receivedEvent.getType()).isEqualTo(cardEvent.getType());
@@ -164,7 +164,7 @@ public class WebSocketEventServiceTest {
 
         // When
         webSocketEventService.sendEventOverWebSocket(TESTED_DESTINATION, penaltyEvent);
-        PenaltyEvent receivedEvent = (PenaltyEvent) completableEvent.get(1, TimeUnit.SECONDS);
+        PenaltyEvent receivedEvent = (PenaltyEvent) completableEvent.get(5, TimeUnit.SECONDS);
 
         // Then
         assertThat(receivedEvent.getType()).isEqualTo(penaltyEvent.getType());
