@@ -2,6 +2,7 @@ package ml.echelon133.sportevents.websocket;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import ml.echelon133.sportevents.event.types.AbstractMatchEvent;
+import ml.echelon133.sportevents.event.types.GoalEvent;
 import ml.echelon133.sportevents.event.types.StandardEvent;
 import ml.echelon133.sportevents.match.Match;
 
@@ -96,6 +97,26 @@ public class WebSocketEventServiceTest {
         assertThat(receivedEvent.getType()).isEqualTo(standardEvent.getType());
         assertThat(receivedEvent.getTime()).isEqualTo(standardEvent.getTime());
         assertThat(receivedEvent.getMessage()).isEqualTo(standardEvent.getMessage());
+    }
+
+    @Test
+    public void sendEventOverWebSocketCorrectlySendsOutGoalEvent() throws InterruptedException, ExecutionException, TimeoutException {
+        Match match = getRandomMatch();
+        GoalEvent goalEvent = new GoalEvent(1L, "Test msg",
+                AbstractMatchEvent.EventType.GOAL, match, match.getTeamA(),"Test player");
+
+
+        // When
+        webSocketEventService.sendEventOverWebSocket(TESTED_DESTINATION, goalEvent);
+        GoalEvent receivedEvent = (GoalEvent) completableEvent.get(1, TimeUnit.SECONDS);
+
+        // Then
+        assertThat(receivedEvent.getType()).isEqualTo(goalEvent.getType());
+        assertThat(receivedEvent.getTime()).isEqualTo(goalEvent.getTime());
+        assertThat(receivedEvent.getMessage()).isEqualTo(goalEvent.getMessage());
+        assertThat(receivedEvent.getTeamScoring().getId()).isEqualTo(goalEvent.getTeamScoring().getId());
+        assertThat(receivedEvent.getTeamScoring().getName()).isEqualTo(goalEvent.getTeamScoring().getName());
+        assertThat(receivedEvent.getPlayerScoring()).isEqualTo(goalEvent.getPlayerScoring());
     }
 
 
