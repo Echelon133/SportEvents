@@ -54,6 +54,8 @@ public class Match {
     @Embedded
     private ScoreInfo result;
 
+    private String websocketPath;
+
     public Match() {
         this.result = new ScoreInfo();
         this.status = Status.NOT_STARTED;
@@ -154,5 +156,13 @@ public class Match {
     public void addEvent(AbstractMatchEvent event) {
         event.setMatch(this);
         this.events.add(event);
+    }
+
+    public String getWebsocketPath() {
+        return websocketPath;
+    }
+
+    public void setWebsocketPath(String websocketPath) {
+        this.websocketPath = websocketPath;
     }
 }

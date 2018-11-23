@@ -6,6 +6,7 @@ import ml.echelon133.sportevents.league.League;
 import ml.echelon133.sportevents.match.Match;
 import ml.echelon133.sportevents.match.MatchService;
 import ml.echelon133.sportevents.team.Team;
+import ml.echelon133.sportevents.websocket.WebSocketEventService;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.mockito.InjectMocks;
@@ -22,6 +23,9 @@ public class EventServiceTest {
 
     @Mock
     private MatchService matchService;
+
+    @Mock
+    private WebSocketEventService webSocketEventService;
 
     @InjectMocks
     private EventServiceImpl eventService;
