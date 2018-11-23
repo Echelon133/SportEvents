@@ -17,7 +17,7 @@ import org.springframework.messaging.simp.stomp.StompFrameHandler;
 import org.springframework.messaging.simp.stomp.StompHeaders;
 import org.springframework.messaging.simp.stomp.StompSession;
 import org.springframework.messaging.simp.stomp.StompSessionHandlerAdapter;
-import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
+import org.springframework.test.context.junit4.SpringRunner;
 import org.springframework.web.socket.client.standard.StandardWebSocketClient;
 import org.springframework.web.socket.messaging.WebSocketStompClient;
 import org.springframework.web.socket.sockjs.client.SockJsClient;
@@ -28,15 +28,12 @@ import java.lang.reflect.Type;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
-import java.util.concurrent.CompletableFuture;
-import java.util.concurrent.ExecutionException;
-import java.util.concurrent.TimeUnit;
-import java.util.concurrent.TimeoutException;
+import java.util.concurrent.*;
 
 import static ml.echelon133.sportevents.TestUtils.getRandomMatch;
 import static org.assertj.core.api.AssertionsForClassTypes.assertThat;
 
-@RunWith(SpringJUnit4ClassRunner.class)
+@RunWith(SpringRunner.class)
 @SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.DEFINED_PORT)
 public class WebSocketEventServiceTest {
 
@@ -45,7 +42,7 @@ public class WebSocketEventServiceTest {
     private final static MessageConverter CONVERTER;
     private final static String TESTED_DESTINATION = "/matches/1";
 
-    private CompletableFuture<AbstractMatchEvent> completableEvent;
+    private BlockingQueue<AbstractMatchEvent> eventQueue;
     private WebSocketStompClient client;
     private StompSession stompSession;
 
@@ -68,7 +65,7 @@ public class WebSocketEventServiceTest {
 
     @Before
     public void setup() throws InterruptedException, ExecutionException, TimeoutException {
-        completableEvent = new CompletableFuture<>();
+        eventQueue = new ArrayBlockingQueue<>(1);
 
         // Standard stomp client, except that we need custom message converter to make event polymorphism work
         client = new WebSocketStompClient(
@@ -88,12 +85,11 @@ public class WebSocketEventServiceTest {
         client.stop();
         client = null;
         stompSession = null;
+        eventQueue = null;
     }
 
     @Test
-    public void sendEventOverWebSocketCorrectlySendsOutStandardEvent() throws InterruptedException,
-                                                                              ExecutionException,
-                                                                              TimeoutException {
+    public void sendEventOverWebSocketCorrectlySendsOutStandardEvent() throws InterruptedException {
         Match match = getRandomMatch();
         AbstractMatchEvent standardEvent = new StandardEvent(1L, "Test msg",
                 AbstractMatchEvent.EventType.STANDARD_DESCRIPTION, match);
@@ -101,7 +97,7 @@ public class WebSocketEventServiceTest {
 
         // When
         webSocketEventService.sendEventOverWebSocket(TESTED_DESTINATION, standardEvent);
-        StandardEvent receivedEvent = (StandardEvent) completableEvent.get(5, TimeUnit.SECONDS);
+        StandardEvent receivedEvent = (StandardEvent) eventQueue.poll(5, TimeUnit.SECONDS);
 
         // Then
         assertThat(receivedEvent.getType()).isEqualTo(standardEvent.getType());
@@ -110,7 +106,7 @@ public class WebSocketEventServiceTest {
     }
 
     @Test
-    public void sendEventOverWebSocketCorrectlySendsOutGoalEvent() throws InterruptedException, ExecutionException, TimeoutException {
+    public void sendEventOverWebSocketCorrectlySendsOutGoalEvent() throws InterruptedException {
         Match match = getRandomMatch();
         GoalEvent goalEvent = new GoalEvent(1L, "Test msg",
                 AbstractMatchEvent.EventType.GOAL, match, match.getTeamA(),"Test player");
@@ -118,7 +114,7 @@ public class WebSocketEventServiceTest {
 
         // When
         webSocketEventService.sendEventOverWebSocket(TESTED_DESTINATION, goalEvent);
-        GoalEvent receivedEvent = (GoalEvent) completableEvent.get(5, TimeUnit.SECONDS);
+        GoalEvent receivedEvent = (GoalEvent) eventQueue.poll(5, TimeUnit.SECONDS);
 
         // Then
         assertThat(receivedEvent.getType()).isEqualTo(goalEvent.getType());
@@ -130,7 +126,7 @@ public class WebSocketEventServiceTest {
     }
 
     @Test
-    public void sendEventOverWebSocketCorrectlySendsOutSubstitutionEvent() throws InterruptedException, ExecutionException, TimeoutException {
+    public void sendEventOverWebSocketCorrectlySendsOutSubstitutionEvent() throws InterruptedException {
         Match match = getRandomMatch();
         SubstitutionEvent substitutionEvent = new SubstitutionEvent(1L, "Test msg",
                 AbstractMatchEvent.EventType.SUBSTITUTION, match, "Player1", "Player2");
@@ -138,7 +134,7 @@ public class WebSocketEventServiceTest {
 
         // When
         webSocketEventService.sendEventOverWebSocket(TESTED_DESTINATION, substitutionEvent);
-        SubstitutionEvent receivedEvent = (SubstitutionEvent) completableEvent.get(5, TimeUnit.SECONDS);
+        SubstitutionEvent receivedEvent = (SubstitutionEvent) eventQueue.poll(5, TimeUnit.SECONDS);
 
         // Then
         assertThat(receivedEvent.getType()).isEqualTo(substitutionEvent.getType());
@@ -149,7 +145,7 @@ public class WebSocketEventServiceTest {
     }
 
     @Test
-    public void sendEventOverWebSocketCorrectlySendsOutCardEvent() throws InterruptedException, ExecutionException, TimeoutException {
+    public void sendEventOverWebSocketCorrectlySendsOutCardEvent() throws InterruptedException {
         Match match = getRandomMatch();
         CardEvent cardEvent = new CardEvent(1L, "Test msg",
                 AbstractMatchEvent.EventType.CARD, match, "Player1", CardEvent.CardColor.YELLOW);
@@ -157,7 +153,7 @@ public class WebSocketEventServiceTest {
 
         // When
         webSocketEventService.sendEventOverWebSocket(TESTED_DESTINATION, cardEvent);
-        CardEvent receivedEvent = (CardEvent) completableEvent.get(5, TimeUnit.SECONDS);
+        CardEvent receivedEvent = (CardEvent) eventQueue.poll(5, TimeUnit.SECONDS);
 
         // Then
         assertThat(receivedEvent.getType()).isEqualTo(cardEvent.getType());
@@ -168,7 +164,7 @@ public class WebSocketEventServiceTest {
     }
 
     @Test
-    public void sendEventOverWebSocketCorrectlySendsOutPenaltyEvent() throws InterruptedException, ExecutionException, TimeoutException {
+    public void sendEventOverWebSocketCorrectlySendsOutPenaltyEvent() throws InterruptedException {
         Match match = getRandomMatch();
         PenaltyEvent penaltyEvent = new PenaltyEvent(1L, "Test msg",
                 AbstractMatchEvent.EventType.PENALTY, match, match.getTeamA());
@@ -176,7 +172,7 @@ public class WebSocketEventServiceTest {
 
         // When
         webSocketEventService.sendEventOverWebSocket(TESTED_DESTINATION, penaltyEvent);
-        PenaltyEvent receivedEvent = (PenaltyEvent) completableEvent.get(5, TimeUnit.SECONDS);
+        PenaltyEvent receivedEvent = (PenaltyEvent) eventQueue.poll(5, TimeUnit.SECONDS);
 
         // Then
         assertThat(receivedEvent.getType()).isEqualTo(penaltyEvent.getType());
@@ -187,7 +183,7 @@ public class WebSocketEventServiceTest {
     }
 
     @Test
-    public void sendEventOverWebSocketCorrectlySendsOutManagingEvents() throws InterruptedException, ExecutionException, TimeoutException {
+    public void sendEventOverWebSocketCorrectlySendsOutManagingEvents() throws InterruptedException {
         Match match = getRandomMatch();
 
         ManagingEvent event0 = new ManagingEvent(1L, "Test", AbstractMatchEvent.EventType.START_FIRST_HALF, match);
@@ -205,17 +201,12 @@ public class WebSocketEventServiceTest {
         for (AbstractMatchEvent event : events) {
             // When
             webSocketEventService.sendEventOverWebSocket(TESTED_DESTINATION, event);
-
-            ManagingEvent receivedEvent = (ManagingEvent) completableEvent.get(5, TimeUnit.SECONDS);
-
+            ManagingEvent receivedEvent = (ManagingEvent) eventQueue.poll(5, TimeUnit.SECONDS);
 
             // Then
             assertThat(receivedEvent.getType()).isEqualTo(event.getType());
             assertThat(receivedEvent.getTime()).isEqualTo(event.getTime());
             assertThat(receivedEvent.getMessage()).isEqualTo(event.getMessage());
-
-            // Reset completableEvent, so that another loop can complete another event
-            completableEvent = new CompletableFuture<>();
         }
     }
 
@@ -230,8 +221,12 @@ public class WebSocketEventServiceTest {
 
         @Override
         public void handleFrame(StompHeaders headers, Object payload) {
-            // Manually set our event to the payload of this frame
-            completableEvent.complete((AbstractMatchEvent) payload);
+            try {
+                eventQueue.offer((AbstractMatchEvent) payload, 5, TimeUnit.SECONDS);
+            } catch (InterruptedException ex) {
+                // Handle InterruptedException like that only because we cannot modify this method signature
+                // Do nothing
+            }
 
         }
     }
