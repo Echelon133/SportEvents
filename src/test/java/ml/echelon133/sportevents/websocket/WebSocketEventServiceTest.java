@@ -82,6 +82,14 @@ public class WebSocketEventServiceTest {
         stompSession.subscribe(TESTED_DESTINATION, new EventStompFrameHandler());
     }
 
+    @After
+    public void after() {
+        stompSession.disconnect();
+        client.stop();
+        client = null;
+        stompSession = null;
+    }
+
     @Test
     public void sendEventOverWebSocketCorrectlySendsOutStandardEvent() throws InterruptedException,
                                                                               ExecutionException,
