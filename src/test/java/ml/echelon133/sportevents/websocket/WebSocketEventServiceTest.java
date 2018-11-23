@@ -4,6 +4,7 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import ml.echelon133.sportevents.event.types.*;
 import ml.echelon133.sportevents.match.Match;
 
+import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -12,7 +13,6 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.messaging.converter.MappingJackson2MessageConverter;
 import org.springframework.messaging.converter.MessageConverter;
-import org.springframework.messaging.simp.SimpMessagingTemplate;
 import org.springframework.messaging.simp.stomp.StompFrameHandler;
 import org.springframework.messaging.simp.stomp.StompHeaders;
 import org.springframework.messaging.simp.stomp.StompSession;
@@ -25,6 +25,7 @@ import org.springframework.web.socket.sockjs.client.Transport;
 import org.springframework.web.socket.sockjs.client.WebSocketTransport;
 
 import java.lang.reflect.Type;
+import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
 import java.util.concurrent.CompletableFuture;
@@ -45,6 +46,8 @@ public class WebSocketEventServiceTest {
     private final static String TESTED_DESTINATION = "/matches/1";
 
     private CompletableFuture<AbstractMatchEvent> completableEvent;
+    private WebSocketStompClient client;
+    private StompSession stompSession;
 
     @Autowired
     private WebSocketEventService webSocketEventService;
@@ -68,14 +71,14 @@ public class WebSocketEventServiceTest {
         completableEvent = new CompletableFuture<>();
 
         // Standard stomp client, except that we need custom message converter to make event polymorphism work
-        WebSocketStompClient client = new WebSocketStompClient(
+        client = new WebSocketStompClient(
                 new SockJsClient(
                         buildTestTransportClient()
                 )
         );
         client.setMessageConverter(CONVERTER);
 
-        StompSession stompSession = client.connect(URL, new StompSessionHandlerAdapter() {}).get(5, TimeUnit.SECONDS);
+        stompSession = client.connect(URL, new StompSessionHandlerAdapter() {}).get(5, TimeUnit.SECONDS);
         stompSession.subscribe(TESTED_DESTINATION, new EventStompFrameHandler());
     }
 
@@ -175,6 +178,39 @@ public class WebSocketEventServiceTest {
         assertThat(receivedEvent.getTeam().getName()).isEqualTo(penaltyEvent.getTeam().getName());
     }
 
+    @Test
+    public void sendEventOverWebSocketCorrectlySendsOutManagingEvents() throws InterruptedException, ExecutionException, TimeoutException {
+        Match match = getRandomMatch();
+
+        ManagingEvent event0 = new ManagingEvent(1L, "Test", AbstractMatchEvent.EventType.START_FIRST_HALF, match);
+        ManagingEvent event1 = new ManagingEvent(45L, "Test", AbstractMatchEvent.EventType.FINISH_FIRST_HALF, match);
+        ManagingEvent event2 = new ManagingEvent(45L, "Test", AbstractMatchEvent.EventType.START_SECOND_HALF, match);
+        ManagingEvent event3 = new ManagingEvent(90L, "Test", AbstractMatchEvent.EventType.FINISH_SECOND_HALF, match);
+        ManagingEvent event4 = new ManagingEvent(90L, "Test", AbstractMatchEvent.EventType.FINISH_MATCH, match);
+        ManagingEvent event5 = new ManagingEvent(90L, "Test", AbstractMatchEvent.EventType.START_OT_FIRST_HALF, match);
+        ManagingEvent event6 = new ManagingEvent(105L, "Test", AbstractMatchEvent.EventType.FINISH_OT_FIRST_HALF, match);
+        ManagingEvent event7 = new ManagingEvent(105L, "Test", AbstractMatchEvent.EventType.START_OT_SECOND_HALF, match);
+        ManagingEvent event8 = new ManagingEvent(120L, "Test", AbstractMatchEvent.EventType.FINISH_OT_SECOND_HALF, match);
+
+        List<AbstractMatchEvent> events = Arrays.asList(event0, event1, event2, event3, event4, event5, event6, event7, event8);
+
+        for (AbstractMatchEvent event : events) {
+            // When
+            webSocketEventService.sendEventOverWebSocket(TESTED_DESTINATION, event);
+
+            ManagingEvent receivedEvent = (ManagingEvent) completableEvent.get(5, TimeUnit.SECONDS);
+
+
+            // Then
+            assertThat(receivedEvent.getType()).isEqualTo(event.getType());
+            assertThat(receivedEvent.getTime()).isEqualTo(event.getTime());
+            assertThat(receivedEvent.getMessage()).isEqualTo(event.getMessage());
+
+            // Reset completableEvent, so that another loop can complete another event
+            completableEvent = new CompletableFuture<>();
+        }
+    }
+
 
     private class EventStompFrameHandler implements StompFrameHandler {
 
@@ -188,6 +224,7 @@ public class WebSocketEventServiceTest {
         public void handleFrame(StompHeaders headers, Object payload) {
             // Manually set our event to the payload of this frame
             completableEvent.complete((AbstractMatchEvent) payload);
+
         }
     }
 }
