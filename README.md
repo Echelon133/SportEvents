@@ -1,5 +1,12 @@
 # SportEvents Application
 
+Application features:
+
+* OAuth2 authentication system (tokens provided by github)
+* Validation of user-provided data
+* CRUD operations on all resources (stadiums, teams, matches, leagues)
+* Live listening to match events thanks to websockets 
+
 ## Documentation
 
 | Endpoint                     | Method     | Data sent with the request | Description                            |
