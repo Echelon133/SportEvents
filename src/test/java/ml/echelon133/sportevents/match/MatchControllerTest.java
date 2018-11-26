@@ -75,6 +75,9 @@ public class MatchControllerTest {
 
         assertThat(response.getStatus()).isEqualTo(HttpStatus.OK.value());
         assertThat(responseJson.read("$.links[?(@.rel=='matches')].href").toString()).contains("/api\\/matches");
+        assertThat(responseJson.read("$.links[?(@.rel=='leagues')].href").toString()).contains("/api\\/leagues");
+        assertThat(responseJson.read("$.links[?(@.rel=='teams')].href").toString()).contains("/api\\/teams");
+        assertThat(responseJson.read("$.links[?(@.rel=='stadiums')].href").toString()).contains("/api\\/stadiums");
         assertThat(responseJson.read("$.content").toString()).isEqualTo("[]");
     }
 
