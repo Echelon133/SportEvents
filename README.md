@@ -212,3 +212,29 @@ This makes it possible to keep scores such as ex. "2:2 (3:1)"
  "teamId" : 2
 }
 ```
+
+## Websockets
+
+To be able to listen to match events over a STOMP endpoint, the client has to connect to **/sport-events**.
+There is no need to authenticate when connecting to this endpoint. The application does not accept any messages sent in.
+Every client can connect to this endpoint, regardless its origin (CORS set to allow all).
+
+Example code of a client app, that uses SockJS and Stomp:
+```JS
+var socket = new SockJS("http://localhost:8080/sport-events");
+var stompClient = Stomp.over(socket);
+
+stompClient.connect({}, onConnection, onError);
+``` 
+
+When an event is added to a particular match, it is simultaneously sent over to a topic **/matches/{matchId}**, where
+*matchId* is the ID of a specific match. 
+
+Every match resource has a *websocketPath* field that contains full topic name where this match events will be accessible.
+
+```JS
+var websocketPath = matchJSON.websocketPath;
+stompClient.subscribe(websocketPath, onMessageReceived);
+```
+
+
