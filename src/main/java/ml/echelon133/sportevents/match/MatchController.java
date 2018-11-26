@@ -1,7 +1,11 @@
 package ml.echelon133.sportevents.match;
 
+import ml.echelon133.sportevents.event.EventController;
 import ml.echelon133.sportevents.exception.FailedValidationException;
 import ml.echelon133.sportevents.exception.ResourceDoesNotExistException;
+import ml.echelon133.sportevents.league.LeagueController;
+import ml.echelon133.sportevents.stadium.StadiumController;
+import ml.echelon133.sportevents.team.TeamController;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.hateoas.Resources;
 import org.springframework.http.HttpStatus;
@@ -48,6 +52,9 @@ public class MatchController {
 
         Resources<MatchResource> resources = new Resources<>(resourceAssembler.toResources(matches));
         resources.add(linkTo(MatchController.class).withRel("matches"));
+        resources.add(linkTo(LeagueController.class).withRel("leagues"));
+        resources.add(linkTo(TeamController.class).withRel("teams"));
+        resources.add(linkTo(StadiumController.class).withRel("stadiums"));
         return new ResponseEntity<>(resources, HttpStatus.OK);
     }
 
