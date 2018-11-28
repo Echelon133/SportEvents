@@ -18,6 +18,8 @@ import java.time.*;
 import java.time.format.DateTimeParseException;
 import java.util.*;
 
+import static ml.echelon133.sportevents.TestUtils.buildLeague;
+import static ml.echelon133.sportevents.TestUtils.buildTeam;
 import static ml.echelon133.sportevents.TestUtils.getRandomMatch;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.BDDMockito.given;
@@ -168,6 +170,30 @@ public class MatchServiceTest {
         assertThat(convertedMatch.getStadium()).isEqualTo(stadium);
         assertThat(convertedMatch.getStartDate())
                 .hasYear(2020).hasMonth(1).hasDayOfMonth(1).hasHourOfDay(20).hasMinute(0);
+    }
+
+    @Test
+    public void convertDtoToEntitySetsUpMatchToTeamReferences() throws Exception {
+        League league = buildLeague(1L, "Test league", "Test country");
+        Team teamA = buildTeam(1L, "TeamA", league);
+        Team teamB = buildTeam(2L, "TeamB", league);
+
+        MatchDto matchDto = new MatchDto("2018-12-31 21:00", 1L, 2L, 1L, null);
+
+        // Given
+        given(teamService.findById(1L)).willReturn(teamA);
+        given(teamService.findById(2L)).willReturn(teamB);
+        given(leagueService.findById(1L)).willReturn(league);
+
+        // When
+        Match convertedMatch = matchService.convertDtoToEntity(matchDto);
+
+        // Then
+        List<Match> teamAMatches = convertedMatch.getTeamA().getMatches();
+        List<Match> teamBMatches = convertedMatch.getTeamB().getMatches();
+
+        assertThat(teamAMatches.contains(convertedMatch)).isTrue();
+        assertThat(teamBMatches.contains(convertedMatch)).isTrue();
     }
 
     @Test
