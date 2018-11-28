@@ -23,16 +23,17 @@ public class TeamServiceImpl implements TeamService {
 
     @Override
     public Team convertDtoToEntity(TeamDto teamDto) throws ResourceDoesNotExistException{
-        Team entity = new Team();
+        Team team = new Team();
 
         // This method lets leagueService throw ResourceDoesNotExistException because there is no reason
         // to convert DTO to an entity that has league set to null.
         // All code after the conversion assumes that entity conversion was fully successful
         League league = leagueService.findById(teamDto.getLeagueId());
 
-        entity.setName(teamDto.getName());
-        entity.setLeague(league);
-        return entity;
+        team.setName(teamDto.getName());
+        league.addTeam(team);
+        team.setLeague(league);
+        return team;
     }
 
     @Override
