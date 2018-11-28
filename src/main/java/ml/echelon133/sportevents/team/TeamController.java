@@ -87,19 +87,17 @@ public class TeamController {
     public ResponseEntity<TeamResource> replaceTeam(@PathVariable Long teamId,
                                                     @Valid @RequestBody TeamDto teamDto,
                                                     BindingResult result) throws FailedValidationException,
-            ResourceDoesNotExistException {
+                                                                                 ResourceDoesNotExistException {
 
         if (result.hasErrors()) {
             throw new FailedValidationException(result.getFieldErrors());
         }
 
-        Team teamToReplace = teamService.findById(teamId);
-
-        // If new leagueId from teamDto points to nonexistent league, conversion fails
+        Team team = teamService.findById(teamId);
         Team replacementEntity = teamService.convertDtoToEntity(teamDto);
-        replacementEntity.setId(teamToReplace.getId());
+        team = teamService.mergeChanges(team, replacementEntity);
 
-        Team savedTeam = teamService.save(replacementEntity);
+        Team savedTeam = teamService.save(team);
         TeamResource teamResource = teamResourceAssembler.toResource(savedTeam);
         return new ResponseEntity<>(teamResource, HttpStatus.OK);
     }
