@@ -18,9 +18,7 @@ import java.time.*;
 import java.time.format.DateTimeParseException;
 import java.util.*;
 
-import static ml.echelon133.sportevents.TestUtils.buildLeague;
-import static ml.echelon133.sportevents.TestUtils.buildTeam;
-import static ml.echelon133.sportevents.TestUtils.getRandomMatch;
+import static ml.echelon133.sportevents.TestUtils.*;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.BDDMockito.given;
 import static org.assertj.core.api.AssertionsForClassTypes.assertThat;
@@ -194,6 +192,31 @@ public class MatchServiceTest {
 
         assertThat(teamAMatches.contains(convertedMatch)).isTrue();
         assertThat(teamBMatches.contains(convertedMatch)).isTrue();
+    }
+
+    @Test
+    public void mergeChangesCorrectlySetsUpMatchToTeamReferences() throws Exception {
+        League league = buildLeague(1L, "Test league", "Test country");
+        Team teamA = buildTeam(1L, "TeamA", league);
+        Team teamB = buildTeam(2L, "TeamB", league);
+        Team teamC = buildTeam(3L, "TeamC", league);
+
+        Match match = buildMatch(1L, teamA, teamB, league, null);
+        Match replacement = buildMatch(null, teamA, teamC, league, null);
+
+        // When
+        Match mergedMatch = matchService.mergeChanges(match, replacement);
+
+        // Then
+        List<Match> teamAMatches = teamA.getMatches();
+        List<Match> teamBMatches = teamB.getMatches();
+        List<Match> teamCMatches = teamC.getMatches();
+
+        assertThat(mergedMatch.getTeamA()).isEqualTo(teamA);
+        assertThat(mergedMatch.getTeamB()).isEqualTo(teamC);
+        assertThat(teamAMatches.contains(mergedMatch)).isTrue();
+        assertThat(teamBMatches.size()).isEqualTo(0);
+        assertThat(teamCMatches.contains(mergedMatch)).isTrue();
     }
 
     @Test
