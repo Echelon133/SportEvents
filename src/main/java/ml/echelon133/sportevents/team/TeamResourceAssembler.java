@@ -29,8 +29,8 @@ public class TeamResourceAssembler extends ResourceAssemblerSupport<Team, TeamRe
             resource = new TeamResource(entity,
                     leagueResource,
                     linkTo(TeamController.class).withRel("teams"),
-                    linkTo(methodOn(TeamController.class).getTeam(entity.getId())).withSelfRel());
-                    linkTo(methodOn(TeamController.class).getTeamMatches(entity.getId())).withRel("team-matches");
+                    linkTo(methodOn(TeamController.class).getTeam(entity.getId())).withSelfRel(),
+                    linkTo(methodOn(TeamController.class).getTeamMatches(entity.getId())).withRel("team-matches"));
         } catch (ResourceDoesNotExistException ex) {
             // getTeam throws Exception only if resource (Team) does not exist
             // getTeam(Long id) is used here only to generate a link to a resource (methodOn creates a proxy)
