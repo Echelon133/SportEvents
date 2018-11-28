@@ -71,7 +71,12 @@ public class MatchServiceImpl implements MatchService {
             stadium = stadiumService.findById(matchDto.getStadium());
         }
 
-        return new Match(startDate, teamA, teamB, league, stadium);
+        Match match = new Match(startDate, teamA, teamB, league, stadium);
+        // Make TeamA and TeamB have a reference to this match
+        match.getTeamA().addMatch(match);
+        match.getTeamB().addMatch(match);
+
+        return match;
     }
 
     @Override
