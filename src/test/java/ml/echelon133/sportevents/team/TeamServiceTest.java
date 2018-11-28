@@ -13,6 +13,7 @@ import java.util.Optional;
 import java.util.Set;
 
 import static ml.echelon133.sportevents.TestUtils.buildLeague;
+import static ml.echelon133.sportevents.TestUtils.buildTeam;
 import static org.assertj.core.api.AssertionsForClassTypes.assertThat;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.BDDMockito.given;
@@ -86,6 +87,58 @@ public class TeamServiceTest {
         Set<Team> leagueTeams = league.getTeams();
 
         assertThat(leagueTeams.contains(convertedTeam)).isTrue();
+    }
+
+    @Test
+    public void mergeChangesCorrectlySetsUpTeamToLeagueReference() throws Exception {
+        League league1 = buildLeague(1L, "Test league", "Test country");
+        League league2 = buildLeague(2L, "Test league 2", "Test country 2");
+
+        Team team = buildTeam(1L, "Team1", league1);
+        Team replacementTeam = buildTeam(1L, "Team1", league2);
+
+        // When
+        Team mergedTeam = teamService.mergeChanges(team, replacementTeam);
+
+        // Then
+        Set<Team> league1Teams = league1.getTeams();
+        Set<Team> league2Teams = league2.getTeams();
+
+        assertThat(league1Teams.size()).isEqualTo(0);
+        assertThat(league2Teams.contains(mergedTeam)).isTrue();
+    }
+
+    @Test
+    public void mergeChangesCorrectlySetsUpTeamToLeagueReferenceWhenFirstArgLeagueIsNull() throws Exception {
+        League league1 = buildLeague(2L, "Test league 1", "Test country 2");
+
+        Team team = buildTeam(1L, "Team1", null);
+        Team replacementTeam = buildTeam(1L, "Team1", league1);
+
+        // When
+        Team mergedTeam = teamService.mergeChanges(team, replacementTeam);
+
+        // Then
+        Set<Team> league1Teams = league1.getTeams();
+
+        assertThat(league1Teams.contains(mergedTeam)).isTrue();
+    }
+
+    @Test
+    public void mergeChangesCorrectlySetsUpTeamToLeagueReferenceWhenSecondArgLeagueIsNull() throws Exception {
+        League league1 = buildLeague(2L, "Test league 1", "Test country 2");
+
+        Team team = buildTeam(1L, "Team1", league1);
+        Team replacementTeam = buildTeam(1L, "Team1", null);
+
+        // When
+        Team mergedTeam = teamService.mergeChanges(team, replacementTeam);
+
+        // Then
+        Set<Team> league1Teams = league1.getTeams();
+
+        assertThat(league1Teams.size()).isEqualTo(0);
+        assertThat(mergedTeam.getLeague()).isNull();
     }
 
     @Test
