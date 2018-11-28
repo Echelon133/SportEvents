@@ -448,6 +448,7 @@ public class TeamControllerTest {
                 argThat(arg -> arg.getName().equals(teamDto.getName())
                         &&
                         arg.getLeagueId().longValue() == teamDto.getLeagueId()))).willReturn(replacementTeam);
+        given(teamService.mergeChanges(originalTeam, replacementTeam)).willReturn(replacementTeam);
         given(teamService.save(replacementTeam)).willReturn(replacementTeam);
         given(teamResourceAssembler.toResource(replacementTeam)).willReturn(teamResource);
 
