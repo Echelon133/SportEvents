@@ -88,12 +88,13 @@ public class MatchController {
             throw new FailedValidationException(result.getFieldErrors(), result.getGlobalErrors());
         }
 
-        Match matchToReplace = matchService.findById(matchId);
-
+        Match match = matchService.findById(matchId);
         Match replacementEntity = matchService.convertDtoToEntity(matchDto);
-        replacementEntity.setId(matchToReplace.getId());
 
-        Match savedMatch = matchService.save(replacementEntity);
+        // Merge all changes into match
+        match = matchService.mergeChanges(match, replacementEntity);
+
+        Match savedMatch = matchService.save(match);
         MatchResource matchResource = resourceAssembler.toResource(savedMatch);
         return new ResponseEntity<>(matchResource, HttpStatus.OK);
     }
