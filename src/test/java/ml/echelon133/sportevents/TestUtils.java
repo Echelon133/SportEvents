@@ -48,6 +48,9 @@ public class TestUtils {
     public static Team buildTeam(Long id, String teamName, League league) {
         Team testTeam = new Team(teamName, league);
         testTeam.setId(id);
+        if (testTeam.getLeague() != null) {
+            testTeam.getLeague().addTeam(testTeam);
+        }
         return testTeam;
     }
 
