@@ -72,6 +72,11 @@ public class Team {
     }
 
     public void addMatch(Match match) {
-        this.matches.add(match);
+        matches.add(match);
+    }
+
+    public void removeMatch(Match match) {
+        long matchId = match.getId();
+        matches.removeIf(m -> m.getId() == matchId);
     }
 }
