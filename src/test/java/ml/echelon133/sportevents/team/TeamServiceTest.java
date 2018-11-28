@@ -10,7 +10,9 @@ import org.mockito.Mock;
 import org.mockito.junit.MockitoJUnitRunner;
 
 import java.util.Optional;
+import java.util.Set;
 
+import static ml.echelon133.sportevents.TestUtils.buildLeague;
 import static org.assertj.core.api.AssertionsForClassTypes.assertThat;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.BDDMockito.given;
@@ -66,6 +68,24 @@ public class TeamServiceTest {
         assertThat(team.getLeague().getId()).isEqualTo(league.getId());
         assertThat(team.getLeague().getName()).isEqualTo(league.getName());
         assertThat(team.getLeague().getCountry()).isEqualTo(league.getCountry());
+    }
+
+    @Test
+    public void convertDtoToEntitySetsUpTeamToLeagueReference() throws Exception {
+        League league = buildLeague(1L, "Test league", "Test country");
+
+        TeamDto teamDto = new TeamDto("Test team", 1L);
+
+        // Given
+        given(leagueService.findById(1L)).willReturn(league);
+
+        // When
+        Team convertedTeam = teamService.convertDtoToEntity(teamDto);
+
+        // Then
+        Set<Team> leagueTeams = league.getTeams();
+
+        assertThat(leagueTeams.contains(convertedTeam)).isTrue();
     }
 
     @Test
