@@ -46,6 +46,42 @@ public class MatchServiceImpl implements MatchService {
     }
 
     @Override
+    public Match mergeChanges(Match originalMatch, Match replacementMatch) {
+        // This method returns merged Match entity with all relationships between Team and Match fixed if it was necessary.
+
+        // If we have an already saved Match entity in the database, every team that plays in that match has a reference
+        // to it in its 'matches' field.
+        // Ex. Team1 and Team2 play in Match1. Both Team1 and Team2 have a reference to Match1 in their 'matches' field.
+        // If we replace one or both of the teams that play in the match, replaced teams still have a reference to a match
+        // they no longer play in.
+
+        if (originalMatch.getTeamA() != replacementMatch.getTeamA()) {
+            // Remove a reference to originalMatch from replaced team
+            originalMatch.getTeamA().removeMatch(originalMatch);
+            // Replace teamA
+            originalMatch.setTeamA(replacementMatch.getTeamA());
+            // Add an originalMatch reference to the new teamA
+            originalMatch.getTeamA().addMatch(originalMatch);
+        }
+
+        if (originalMatch.getTeamB() != replacementMatch.getTeamB()) {
+            // Remove a reference to originalMatch from replaced team
+            originalMatch.getTeamB().removeMatch(originalMatch);
+            // Replace teamB
+            originalMatch.setTeamB(replacementMatch.getTeamB());
+            // Add an originalMatch reference to the new teamB
+            originalMatch.getTeamB().addMatch(originalMatch);
+        }
+
+        // Changes to fields below can be done without any additional operations
+        originalMatch.setLeague(replacementMatch.getLeague());
+        originalMatch.setStartDate(replacementMatch.getStartDate());
+        originalMatch.setStadium(replacementMatch.getStadium());
+
+        return originalMatch;
+    }
+
+    @Override
     public Match convertDtoToEntity(MatchDto matchDto) throws ResourceDoesNotExistException, DateTimeParseException {
         Date startDate;
         Team teamA;
@@ -71,7 +107,12 @@ public class MatchServiceImpl implements MatchService {
             stadium = stadiumService.findById(matchDto.getStadium());
         }
 
-        return new Match(startDate, teamA, teamB, league, stadium);
+        Match match = new Match(startDate, teamA, teamB, league, stadium);
+        // Make TeamA and TeamB have a reference to this match
+        match.getTeamA().addMatch(match);
+        match.getTeamB().addMatch(match);
+
+        return match;
     }
 
     @Override

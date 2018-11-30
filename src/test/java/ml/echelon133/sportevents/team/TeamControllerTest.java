@@ -142,6 +142,10 @@ public class TeamControllerTest {
         assertThat(json.read("$.content[0].id").toString()).isEqualTo(testTeam.getId().toString());
         assertThat(json.read("$.content[0].name").toString()).isEqualTo(testTeam.getName());
         assertThat(json.read("$.content[0].links[?(@.rel=='teams')].href").toString()).contains("/api\\/teams");
+        assertThat(json.read("$.content[0].links[?(@.rel=='self')].href").toString())
+                .contains("/api\\/teams\\/" + testTeam.getId());
+        assertThat(json.read("$.content[0].links[?(@.rel=='team-matches')].href").toString())
+                .contains("/api\\/teams\\/" + testTeam.getId() + "\\/matches");
 
         assertThat(json.read("$.content[0].league.id").toString()).isEqualTo(testTeam.getLeague().getId().toString());
         assertThat(json.read("$.content[0].league.name").toString()).isEqualTo(testTeam.getLeague().getName());
@@ -190,6 +194,8 @@ public class TeamControllerTest {
         assertThat(json.read("$.links[?(@.rel=='teams')].href").toString()).contains("/api\\/teams");
         assertThat(json.read("$.links[?(@.rel=='self')].href").toString())
                 .contains("/api\\/teams\\/" + testTeam.getId());
+        assertThat(json.read("$.links[?(@.rel=='team-matches')].href").toString())
+                .contains("/api\\/teams\\/" + testTeam.getId() + "\\/matches");
 
         assertThat(json.read("$.league.id").toString()).isEqualTo(testTeam.getLeague().getId().toString());
         assertThat(json.read("$.league.name").toString()).isEqualTo(testTeam.getLeague().getName());
@@ -442,6 +448,7 @@ public class TeamControllerTest {
                 argThat(arg -> arg.getName().equals(teamDto.getName())
                         &&
                         arg.getLeagueId().longValue() == teamDto.getLeagueId()))).willReturn(replacementTeam);
+        given(teamService.mergeChanges(originalTeam, replacementTeam)).willReturn(replacementTeam);
         given(teamService.save(replacementTeam)).willReturn(replacementTeam);
         given(teamResourceAssembler.toResource(replacementTeam)).willReturn(teamResource);
 
