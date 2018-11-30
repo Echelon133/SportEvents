@@ -1,5 +1,10 @@
 # SportEvents Application
 
+REST API for live text coverage of football matches. Each match has a separate websocket topic. Thus, it is possible to
+read all past events of a certain match through a GET request and then to receive all future events live over a 
+websocket connection.
+
+
 Application features:
 
 * OAuth2 authentication system (tokens provided by github)
