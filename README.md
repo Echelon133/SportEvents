@@ -35,8 +35,8 @@ Application features:
 |/api/teams/{teamId}           | PUT        | Team JSON                  | Replace a team with new team data      |
 |/api/teams/{teamId}           | DELETE     |                            | Delete a team that has specified id    |
 |/api/matches                  | GET        |                            | Get all matches                        |
-|/api/matches?status=          | GET        |                            | Filter matches by status               |
-|/api/matches?dateWithin=      | GET        |                            | Filter matches by date                 |
+|/api/matches?status=          | GET        |                            | Filter matches by status [1]           |
+|/api/matches?dateWithin=      | GET        |                            | Filter matches by date within [2]      |
 |/api/matches/{matchId}        | GET        |                            | Get a match that has specified id      |
 |/api/matches                  | POST       | Match JSON                 | Create a new match from match data     |
 |/api/matches/{matchId}        | PUT        | Match JSON                 | Replace a match with new match data    |
@@ -44,6 +44,9 @@ Application features:
 |/api/matches/{matchId}/events | GET        |                            | Get all events that occured in this match |
 |/api/matches/{matchId}/events | POST       | Event JSON (of chosen type)| Create a new event that belongs to the match with specified id |
 
+[1] - accepted values: NOT_STARTED, FIRST_HALF, SECOND_HALF, FINISHED, OT_FIRST_HALF, OT_SECOND_HALF, PENALTIES, BREAK_TIME
+
+[2] - accepted values: DAY, THREE_DAYS, WEEK
 
 ## Json Objects
 
