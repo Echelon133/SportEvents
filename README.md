@@ -12,7 +12,7 @@ Application features:
 * CRUD operations on all resources (stadiums, teams, matches, leagues)
 * Live listening to match events thanks to websockets 
 
-## Documentation
+# Documentation
 
 | Endpoint                     | Method     | Data sent with the request | Description                            |
 |------------------------      |----------  |----------------------------|-------------                           |
@@ -45,7 +45,7 @@ Application features:
 |/api/matches/{matchId}/events | POST       | Event JSON (of chosen type)| Create a new event that belongs to the match with specified id |
 
 
-### Json Objects
+## Json Objects
 
 #### League JSON
 
@@ -217,6 +217,26 @@ This makes it possible to keep scores such as ex. "2:2 (3:1)"
  "teamId" : 2
 }
 ```
+
+## Events accepted depending on current match status
+
+|event type \ match status | NOT_STARTED   | FIRST_HALF| BREAK_TIME| SECOND_HALF  | OT_FIRST_HALF | OT_SECOND_HALF   | PENALTIES | FINISHED|
+|--------------------------|---------------|-----------|-----------|--------------|---------------|------------------|-----------|---------|
+| STANDARD_DESCRIPTION     |  YES          | YES       |  YES      |  YES         |  YES          |   YES            | NO        | YES     |
+| START_FIRST_HALF         |  YES          | NO        |  NO       |  NO          |  NO           |   NO             | NO        | NO      |
+| FINISH_FIRST_HALF        |  NO           | YES       |  NO       |  NO          |  NO           |   NO             | NO        | NO      |
+| START_SECOND_HALF        |  NO           | NO        |  YES      |  NO          |  NO           |   NO             | NO        | NO      |
+| FINISH_SECOND_HALF       |  NO           | NO        |  NO       |  YES         |  NO           |   NO             | NO        | NO      |
+| FINISH_MATCH             |  NO           | NO        |  NO       |  YES         |  NO           |   YES            | YES       | NO      |
+| START_OT_FIRST_HALF      |  NO           | NO        |  YES      |  NO          |  NO           |   NO             | NO        | NO      |
+| FINISH_OT_FIRST_HALF     |  NO           | NO        |  NO       |  NO          |  YES          |   NO             | NO        | NO      |
+| START_OT_SECOND_HALF     |  NO           | NO        |  YES      |  NO          |  NO           |   NO             | NO        | NO      |
+| FINISH_OT_SECOND_HALF    |  NO           | NO        |  NO       |  NO          |  NO           |   YES            | NO        | NO      |
+| GOAL                     |  NO           | YES       |  NO       |  YES         |  YES          |   YES            | NO        | NO      |
+| CARD                     |  NO           | YES       |  NO       |  YES         |  YES          |   YES            | NO        | NO      |
+| SUBSTITUTION             |  NO           | YES       |  YES      |  YES         |  YES          |   YES            | NO        | NO      |
+| PENALTY                  |  NO           | NO        |  NO       |  NO          |  NO           |   NO             | YES       | NO      |
+ 
 
 ## Websockets
 
