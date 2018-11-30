@@ -6,6 +6,7 @@ import java.util.List;
 
 public interface TeamService {
     Team convertDtoToEntity(TeamDto teamDto) throws ResourceDoesNotExistException;
+    Team mergeChanges(Team team, Team replacementTeam);
     Team save(Team team);
     List<Team> findAll();
     List<Team> findAllByNameContaining(String name);

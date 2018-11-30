@@ -35,7 +35,7 @@ public class Team {
     public Team(String name, League league) {
         this.name = name;
         this.matches = new ArrayList<>();
-        setLeague(league);
+        this.league = league;
     }
 
     public Long getId() {
@@ -59,7 +59,6 @@ public class Team {
     }
 
     public void setLeague(League league) {
-        league.addTeam(this);
         this.league = league;
     }
 
@@ -72,6 +71,11 @@ public class Team {
     }
 
     public void addMatch(Match match) {
-        this.matches.add(match);
+        matches.add(match);
+    }
+
+    public void removeMatch(Match match) {
+        long matchId = match.getId();
+        matches.removeIf(m -> m.getId() == matchId);
     }
 }

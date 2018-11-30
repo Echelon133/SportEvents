@@ -432,6 +432,7 @@ public class MatchControllerTest {
                         a.getTeamA().equals(changedMatch.getTeamA().getId())
                         &&
                         a.getTeamB().equals(changedMatch.getTeamB().getId())))).willReturn(changedMatch);
+        given(matchService.mergeChanges(match, changedMatch)).willReturn(changedMatch);
         given(matchService.save(changedMatch)).willReturn(changedMatch);
         given(matchResourceAssembler.toResource(changedMatch)).willReturn(changedMatchResource);
 

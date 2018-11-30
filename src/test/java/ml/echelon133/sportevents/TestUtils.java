@@ -48,12 +48,17 @@ public class TestUtils {
     public static Team buildTeam(Long id, String teamName, League league) {
         Team testTeam = new Team(teamName, league);
         testTeam.setId(id);
+        if (testTeam.getLeague() != null) {
+            testTeam.getLeague().addTeam(testTeam);
+        }
         return testTeam;
     }
 
     public static Match buildMatch(Long id, Team teamA, Team teamB, League league, Stadium stadium) {
         Match testMatch = new Match(new Date(), teamA, teamB, league, stadium);
         testMatch.setId(id);
+        testMatch.getTeamA().addMatch(testMatch);
+        testMatch.getTeamB().addMatch(testMatch);
         return testMatch;
     }
 

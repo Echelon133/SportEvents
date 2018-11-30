@@ -22,17 +22,42 @@ public class TeamServiceImpl implements TeamService {
     }
 
     @Override
+    public Team mergeChanges(Team team, Team replacementTeam) {
+        // If current team and replacementTeam belong to different leagues, fix league-team relationship
+        // Remove old team reference from a league, change team league and add a new team reference to the new league
+        League teamLeague = team.getLeague();
+        League replacementLeague = replacementTeam.getLeague();
+
+        if (teamLeague != replacementLeague) {
+            // A Team with league set to null cannot be created, but to avoid any unexpected NullPointerException
+            // we can still try to handle this safely
+            if (teamLeague != null) {
+                teamLeague.removeTeam(team);
+            }
+            if (replacementLeague != null) {
+                replacementLeague.addTeam(team);
+            }
+            team.setLeague(replacementLeague);
+        }
+
+        // Set remaining field
+        team.setName(replacementTeam.getName());
+        return team;
+    }
+
+    @Override
     public Team convertDtoToEntity(TeamDto teamDto) throws ResourceDoesNotExistException{
-        Team entity = new Team();
+        Team team = new Team();
 
         // This method lets leagueService throw ResourceDoesNotExistException because there is no reason
         // to convert DTO to an entity that has league set to null.
         // All code after the conversion assumes that entity conversion was fully successful
         League league = leagueService.findById(teamDto.getLeagueId());
 
-        entity.setName(teamDto.getName());
-        entity.setLeague(league);
-        return entity;
+        team.setName(teamDto.getName());
+        league.addTeam(team);
+        team.setLeague(league);
+        return team;
     }
 
     @Override
