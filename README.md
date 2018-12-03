@@ -272,6 +272,16 @@ stompClient.subscribe(websocketPath, onMessageReceived);
 ![GET_ACCESS_TOKEN](https://github.com/Echelon133/SportEvents/blob/docs/screens/Oauth2/1GET_ACCESS_TOKEN.png)
 ![SAVE_TOKEN](https://github.com/Echelon133/SportEvents/blob/docs/screens/Oauth2/2SAVE_ACCESS_TOKEN.png)
 
+### Example use of /api/stadiums
+
+![GET_EMPTY](https://github.com/Echelon133/SportEvents/blob/docs/screens/Stadium/1GET_EMPTY_STADIUM_RESOURCE.png)
+![CREATE_STADIUM](https://github.com/Echelon133/SportEvents/blob/docs/screens/Stadium/2CREATE_STADIUM_RESOURCE.png)
+![GET_RESOURCE](https://github.com/Echelon133/SportEvents/blob/docs/screens/Stadium/3GET_STADIUM_RESOURCE.png)
+![GET_404](https://github.com/Echelon133/SportEvents/blob/docs/screens/Stadium/4GET_NON_EXISTENT_STADIUM.png)
+![PUT_RESOURCE](https://github.com/Echelon133/SportEvents/blob/docs/screens/Stadium/5REPLACE_STADIUM_RESOURCE.png)
+![GET_RESOURCES](https://github.com/Echelon133/SportEvents/blob/docs/screens/Stadium/6GET_ALL_STADIUM_RESOURCES.png)
+![DELETE_RESOURCE](https://github.com/Echelon133/SportEvents/blob/docs/screens/Stadium/7DELETE_STADIUM_RESOURCE.png)
+![GET_AFTER_DELETION](https://github.com/Echelon133/SportEvents/blob/docs/screens/Stadium/8GET_ALL_STADIUM_RESOURCES_AFTER_DELETION.png)
 
 
 
