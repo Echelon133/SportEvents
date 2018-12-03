@@ -313,3 +313,14 @@ stompClient.subscribe(websocketPath, onMessageReceived);
 ![FILTER_BY_STATUS](https://github.com/Echelon133/SportEvents/blob/docs/screens/Match/6GET_FILTERED_RESOURCES.png)
 ![DELETE_RESOURCE](https://github.com/Echelon133/SportEvents/blob/docs/screens/Match/7DELETE_MATCH_RESOURCE.png)
 
+### Example use of /api/matches/{matchId}/events
+
+![GET_EMPTY](https://github.com/Echelon133/SportEvents/blob/docs/screens/Event/1GET_EMPTY.png)
+![SEND_EVENT](https://github.com/Echelon133/SportEvents/blob/docs/screens/Event/2SEND_EVENT.png)
+![START_FIRST_HALF](https://github.com/Echelon133/SportEvents/blob/docs/screens/Event/3SEND_START_FIRST_HALF_EVENT.png)
+![CHANGED_STATUS](https://github.com/Echelon133/SportEvents/blob/docs/screens/Event/4EVENT_CHANGED_MATCH_STATUS.png)
+![SEND_GOAL_EVENT](https://github.com/Echelon133/SportEvents/blob/docs/screens/Event/5SEND_GOAL_EVENT.png)
+![GOAL_EVENT_RESULT](https://github.com/Echelon133/SportEvents/blob/docs/screens/Event/6GOAL_EVENT_RESULT.png)
+![FINISH_FIRST_HALF](https://github.com/Echelon133/SportEvents/blob/docs/screens/Event/7SEND_FINISH_FIRST_HALF_EVENT.png)
+![BREAK_TIME](https://github.com/Echelon133/SportEvents/blob/docs/screens/Event/8EVENT_SETS_BREAK_TIME_STATUS.png)
+![GET_ALL_EVENTS](https://github.com/Echelon133/SportEvents/blob/docs/screens/Event/9GET_ALL_EVENTS.png)
