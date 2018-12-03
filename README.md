@@ -291,7 +291,7 @@ stompClient.subscribe(websocketPath, onMessageReceived);
 ![GET_RESOURCES](https://github.com/Echelon133/SportEvents/blob/docs/screens/League/4GET_ALL_LEAGUE_RESOURCES.png)
 ![DELETE_RESOURCE](https://github.com/Echelon133/SportEvents/blob/docs/screens/League/5DELETE_LEAGUE_RESOURCE.png)
 ![GET_AFTER_DELETION](https://github.com/Echelon133/SportEvents/blob/docs/screens/League/6GET_ALL_LEAGUE_RESOURCES.png)
-When creating a team that belongs to a specific league, the league receives a reference to the new team. With the request shown below we can list all teams that belong to a certain league.
+##### When creating a team that belongs to a specific league, the league receives a reference to the new team. With the request shown below we can list all teams that belong to a certain league.
 ![GET_LEAGUE_TEAMS](https://github.com/Echelon133/SportEvents/blob/docs/screens/League/7GET_LEAGUE_TEAMS.png)
 
 
