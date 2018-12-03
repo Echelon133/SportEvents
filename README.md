@@ -303,3 +303,13 @@ stompClient.subscribe(websocketPath, onMessageReceived);
 ![DELETE_RESOURCE](https://github.com/Echelon133/SportEvents/blob/docs/screens/Team/5DELETE_TEAM_RESOURCE.png)
 ![FILTER_RESOURCES](https://github.com/Echelon133/SportEvents/blob/docs/screens/Team/6FILTER_TEAM_BY_NAME_CONTAINS.png)
 
+### Example use of /api/matches
+
+![GET_EMPTY](https://github.com/Echelon133/SportEvents/blob/docs/screens/Match/1GET_EMPTY_MATCHES.png)
+![GET_404](https://github.com/Echelon133/SportEvents/blob/docs/screens/Match/2GET_404.png)
+![CREATE_MATCH](https://github.com/Echelon133/SportEvents/blob/docs/screens/Match/3CREATE_MATCH_RESOURCE.png)
+![MATCH_VALIDATION](https://github.com/Echelon133/SportEvents/blob/docs/screens/Match/4MATCH_TEAM_ID_VALIDATION.png)
+![REPLACE_MATCH](https://github.com/Echelon133/SportEvents/blob/docs/screens/Match/5REPLACE_MATCH_RESOURCE.png)
+![FILTER_BY_STATUS](https://github.com/Echelon133/SportEvents/blob/docs/screens/Match/6GET_FILTERED_RESOURCES.png)
+![DELETE_RESOURCE](https://github.com/Echelon133/SportEvents/blob/docs/screens/Match/7DELETE_MATCH_RESOURCE.png)
+
