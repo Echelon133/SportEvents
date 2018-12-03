@@ -265,4 +265,13 @@ var websocketPath = matchJSON.websocketPath;
 stompClient.subscribe(websocketPath, onMessageReceived);
 ```
 
+## Screens
+
+### OAuth2 token generation
+
+![GET_ACCESS_TOKEN](https://github.com/Echelon133/SportEvents/blob/docs/screens/Oauth2/1GET_ACCESS_TOKEN.png)
+![SAVE_TOKEN](https://github.com/Echelon133/SportEvents/blob/docs/screens/Oauth2/2SAVE_ACCESS_TOKEN.png)
+
+
+
 
