@@ -265,4 +265,41 @@ var websocketPath = matchJSON.websocketPath;
 stompClient.subscribe(websocketPath, onMessageReceived);
 ```
 
+## Screens
+
+### OAuth2 token generation
+
+![GET_ACCESS_TOKEN](https://github.com/Echelon133/SportEvents/blob/docs/screens/Oauth2/1GET_ACCESS_TOKEN.png)
+![SAVE_TOKEN](https://github.com/Echelon133/SportEvents/blob/docs/screens/Oauth2/2SAVE_ACCESS_TOKEN.png)
+
+### Example use of /api/stadiums
+
+![GET_EMPTY](https://github.com/Echelon133/SportEvents/blob/docs/screens/Stadium/1GET_EMPTY_STADIUM_RESOURCE.png)
+![CREATE_STADIUM](https://github.com/Echelon133/SportEvents/blob/docs/screens/Stadium/2CREATE_STADIUM_RESOURCE.png)
+![GET_RESOURCE](https://github.com/Echelon133/SportEvents/blob/docs/screens/Stadium/3GET_STADIUM_RESOURCE.png)
+![GET_404](https://github.com/Echelon133/SportEvents/blob/docs/screens/Stadium/4GET_NON_EXISTENT_STADIUM.png)
+![PUT_RESOURCE](https://github.com/Echelon133/SportEvents/blob/docs/screens/Stadium/5REPLACE_STADIUM_RESOURCE.png)
+![GET_RESOURCES](https://github.com/Echelon133/SportEvents/blob/docs/screens/Stadium/6GET_ALL_STADIUM_RESOURCES.png)
+![DELETE_RESOURCE](https://github.com/Echelon133/SportEvents/blob/docs/screens/Stadium/7DELETE_STADIUM_RESOURCE.png)
+![GET_AFTER_DELETION](https://github.com/Echelon133/SportEvents/blob/docs/screens/Stadium/8GET_ALL_STADIUM_RESOURCES_AFTER_DELETION.png)
+
+### Example use of /api/leagues
+
+![GET_EMPTY](https://github.com/Echelon133/SportEvents/blob/docs/screens/League/1GET_EMPTY_LEAGUE_RESOURCE.png)
+![GET_404](https://github.com/Echelon133/SportEvents/blob/docs/screens/League/2GET_NON_EXISTENT_LEAGUE_RESOURCE.png)
+![CREATE_LEAGUE](https://github.com/Echelon133/SportEvents/blob/docs/screens/League/3CREATE_LEAGUE_RESOURCE.png)
+![GET_RESOURCES](https://github.com/Echelon133/SportEvents/blob/docs/screens/League/4GET_ALL_LEAGUE_RESOURCES.png)
+![DELETE_RESOURCE](https://github.com/Echelon133/SportEvents/blob/docs/screens/League/5DELETE_LEAGUE_RESOURCE.png)
+![GET_AFTER_DELETION](https://github.com/Echelon133/SportEvents/blob/docs/screens/League/6GET_ALL_LEAGUE_RESOURCES.png)
+##### When creating a team that belongs to a specific league, the league receives a reference to the new team. With the request shown below we can list all teams that belong to a certain league.
+![GET_LEAGUE_TEAMS](https://github.com/Echelon133/SportEvents/blob/docs/screens/League/7GET_LEAGUE_TEAMS.png)
+
+### Example use of /api/teams
+
+![GET_EMPTY](https://github.com/Echelon133/SportEvents/blob/docs/screens/Team/1GET_EMPTY_TEAM_RESOURCE.png)
+![GET_404](https://github.com/Echelon133/SportEvents/blob/docs/screens/Team/2GET_NON_EXISTENT_TEAM_RESOURCE.png)
+![CREATE_TEAM](https://github.com/Echelon133/SportEvents/blob/docs/screens/Team/3CREATE_TEAM.png)
+![GET_RESOURCES](https://github.com/Echelon133/SportEvents/blob/docs/screens/Team/4GET_ALL_TEAM_RESOURCES.png)
+![DELETE_RESOURCE](https://github.com/Echelon133/SportEvents/blob/docs/screens/Team/5DELETE_TEAM_RESOURCE.png)
+![FILTER_RESOURCES](https://github.com/Echelon133/SportEvents/blob/docs/screens/Team/6FILTER_TEAM_BY_NAME_CONTAINS.png)
 
