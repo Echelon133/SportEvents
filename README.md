@@ -283,5 +283,15 @@ stompClient.subscribe(websocketPath, onMessageReceived);
 ![DELETE_RESOURCE](https://github.com/Echelon133/SportEvents/blob/docs/screens/Stadium/7DELETE_STADIUM_RESOURCE.png)
 ![GET_AFTER_DELETION](https://github.com/Echelon133/SportEvents/blob/docs/screens/Stadium/8GET_ALL_STADIUM_RESOURCES_AFTER_DELETION.png)
 
+### Example use of /api/leagues
+
+![GET_EMPTY](https://github.com/Echelon133/SportEvents/blob/docs/screens/League/1GET_EMPTY_LEAGUE_RESOURCE.png)
+![GET_404](https://github.com/Echelon133/SportEvents/blob/docs/screens/League/2GET_NON_EXISTENT_LEAGUE_RESOURCE.png)
+![CREATE_LEAGUE](https://github.com/Echelon133/SportEvents/blob/docs/screens/League/3CREATE_LEAGUE_RESOURCE.png)
+![GET_RESOURCES](https://github.com/Echelon133/SportEvents/blob/docs/screens/League/4GET_ALL_LEAGUE_RESOURCES.png)
+![DELETE_RESOURCE](https://github.com/Echelon133/SportEvents/blob/docs/screens/League/5DELETE_LEAGUE_RESOURCE.png)
+![GET_AFTER_DELETION](https://github.com/Echelon133/SportEvents/blob/docs/screens/League/6GET_ALL_LEAGUE_RESOURCES.png)
+When creating a team that belongs to a specific league, the league receives a reference to the new team. With the request shown below we can list all teams that belong to a certain league.
+![GET_LEAGUE_TEAMS](https://github.com/Echelon133/SportEvents/blob/docs/screens/League/7GET_LEAGUE_TEAMS.png)
 
 
