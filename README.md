@@ -294,4 +294,12 @@ stompClient.subscribe(websocketPath, onMessageReceived);
 ##### When creating a team that belongs to a specific league, the league receives a reference to the new team. With the request shown below we can list all teams that belong to a certain league.
 ![GET_LEAGUE_TEAMS](https://github.com/Echelon133/SportEvents/blob/docs/screens/League/7GET_LEAGUE_TEAMS.png)
 
+### Example use of /api/teams
+
+![GET_EMPTY](https://github.com/Echelon133/SportEvents/blob/docs/screens/Team/1GET_EMPTY_TEAM_RESOURCE.png)
+![GET_404](https://github.com/Echelon133/SportEvents/blob/docs/screens/Team/2GET_NON_EXISTENT_TEAM_RESOURCE.png)
+![CREATE_TEAM](https://github.com/Echelon133/SportEvents/blob/docs/screens/Team/3CREATE_TEAM.png)
+![GET_RESOURCES](https://github.com/Echelon133/SportEvents/blob/docs/screens/Team/4GET_ALL_TEAM_RESOURCES.png)
+![DELETE_RESOURCE](https://github.com/Echelon133/SportEvents/blob/docs/screens/Team/5DELETE_TEAM_RESOURCE.png)
+![FILTER_RESOURCES](https://github.com/Echelon133/SportEvents/blob/docs/screens/Team/6FILTER_TEAM_BY_NAME_CONTAINS.png)
 
