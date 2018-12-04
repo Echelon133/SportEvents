@@ -9,6 +9,7 @@ import org.mockito.junit.MockitoJUnitRunner;
 
 import java.util.Optional;
 
+import static ml.echelon133.sportevents.TestUtils.buildStadium;
 import static org.assertj.core.api.AssertionsForClassTypes.assertThat;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.BDDMockito.given;
@@ -36,7 +37,7 @@ public class StadiumServiceTest {
         StadiumDto stadiumDto = new StadiumDto("Test stadium", "Test city", 40000);
 
         // Expected object
-        Stadium stadium = new Stadium(stadiumDto.getName(), stadiumDto.getCity(), stadiumDto.getCapacity());
+        Stadium stadium = buildStadium(null, stadiumDto.getName(), stadiumDto.getCity(), stadiumDto.getCapacity());
 
         // When
         Stadium convertedStadium = stadiumService.convertDtoToEntity(stadiumDto);

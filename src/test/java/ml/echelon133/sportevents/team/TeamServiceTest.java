@@ -54,8 +54,7 @@ public class TeamServiceTest {
     public void convertDtoToEntityConvertsCorrectly() throws Exception {
         TeamDto teamDto = new TeamDto("Team name", 1L);
 
-        League league = new League("Test league", "Test country");
-        league.setId(1L);
+        League league = buildLeague(1L, "Test league", "Test country");
 
         // Given
         given(leagueService.findById(1L)).willReturn(league);
