@@ -1,6 +1,18 @@
 # SportEvents Application
 
-## Documentation
+REST API for live text coverage of football matches. Each match has a separate websocket topic. Thus, it is possible to
+read all past events of a certain match through a GET request and then to receive all future events live over a 
+websocket connection.
+
+
+Application features:
+
+* OAuth2 authentication system (tokens provided by github)
+* Validation of user-provided data
+* CRUD operations on all resources (stadiums, teams, matches, leagues)
+* Live listening to match events thanks to websockets 
+
+# Documentation
 
 | Endpoint                     | Method     | Data sent with the request | Description                            |
 |------------------------      |----------  |----------------------------|-------------                           |
@@ -23,8 +35,8 @@
 |/api/teams/{teamId}           | PUT        | Team JSON                  | Replace a team with new team data      |
 |/api/teams/{teamId}           | DELETE     |                            | Delete a team that has specified id    |
 |/api/matches                  | GET        |                            | Get all matches                        |
-|/api/matches?status=          | GET        |                            | Filter matches by status               |
-|/api/matches?dateWithin=      | GET        |                            | Filter matches by date                 |
+|/api/matches?status=          | GET        |                            | Filter matches by status [1]           |
+|/api/matches?dateWithin=      | GET        |                            | Filter matches by date within [2]      |
 |/api/matches/{matchId}        | GET        |                            | Get a match that has specified id      |
 |/api/matches                  | POST       | Match JSON                 | Create a new match from match data     |
 |/api/matches/{matchId}        | PUT        | Match JSON                 | Replace a match with new match data    |
@@ -32,8 +44,11 @@
 |/api/matches/{matchId}/events | GET        |                            | Get all events that occured in this match |
 |/api/matches/{matchId}/events | POST       | Event JSON (of chosen type)| Create a new event that belongs to the match with specified id |
 
+[1] - accepted values: NOT_STARTED, FIRST_HALF, SECOND_HALF, FINISHED, OT_FIRST_HALF, OT_SECOND_HALF, PENALTIES, BREAK_TIME
 
-### Json Objects
+[2] - accepted values: DAY, THREE_DAYS, WEEK
+
+## Json Objects
 
 #### League JSON
 
@@ -205,3 +220,107 @@ This makes it possible to keep scores such as ex. "2:2 (3:1)"
  "teamId" : 2
 }
 ```
+
+## Events accepted depending on current match status
+
+|event type \ match status | NOT_STARTED   | FIRST_HALF| BREAK_TIME| SECOND_HALF  | OT_FIRST_HALF | OT_SECOND_HALF   | PENALTIES | FINISHED|
+|--------------------------|---------------|-----------|-----------|--------------|---------------|------------------|-----------|---------|
+| STANDARD_DESCRIPTION     |  YES          | YES       |  YES      |  YES         |  YES          |   YES            | NO        | YES     |
+| START_FIRST_HALF         |  YES          | NO        |  NO       |  NO          |  NO           |   NO             | NO        | NO      |
+| FINISH_FIRST_HALF        |  NO           | YES       |  NO       |  NO          |  NO           |   NO             | NO        | NO      |
+| START_SECOND_HALF        |  NO           | NO        |  YES      |  NO          |  NO           |   NO             | NO        | NO      |
+| FINISH_SECOND_HALF       |  NO           | NO        |  NO       |  YES         |  NO           |   NO             | NO        | NO      |
+| FINISH_MATCH             |  NO           | NO        |  NO       |  YES         |  NO           |   YES            | YES       | NO      |
+| START_OT_FIRST_HALF      |  NO           | NO        |  YES      |  NO          |  NO           |   NO             | NO        | NO      |
+| FINISH_OT_FIRST_HALF     |  NO           | NO        |  NO       |  NO          |  YES          |   NO             | NO        | NO      |
+| START_OT_SECOND_HALF     |  NO           | NO        |  YES      |  NO          |  NO           |   NO             | NO        | NO      |
+| FINISH_OT_SECOND_HALF    |  NO           | NO        |  NO       |  NO          |  NO           |   YES            | NO        | NO      |
+| GOAL                     |  NO           | YES       |  NO       |  YES         |  YES          |   YES            | NO        | NO      |
+| CARD                     |  NO           | YES       |  NO       |  YES         |  YES          |   YES            | NO        | NO      |
+| SUBSTITUTION             |  NO           | YES       |  YES      |  YES         |  YES          |   YES            | NO        | NO      |
+| PENALTY                  |  NO           | NO        |  NO       |  NO          |  NO           |   NO             | YES       | NO      |
+ 
+
+## Websockets
+
+To be able to listen to match events over a STOMP endpoint, the client has to connect to **/sport-events**.
+There is no need to authenticate when connecting to this endpoint. The application does not accept any messages sent in.
+Every client can connect to this endpoint, regardless its origin (CORS set to allow all).
+
+Example code of a client app, that uses SockJS and Stomp:
+```JS
+var socket = new SockJS("http://localhost:8080/sport-events");
+var stompClient = Stomp.over(socket);
+
+stompClient.connect({}, onConnection, onError);
+``` 
+
+When an event is added to a particular match, it is simultaneously sent over to a topic **/matches/{matchId}**, where
+*matchId* is the ID of a specific match. 
+
+Every match resource has a *websocketPath* field that contains full topic name where this match events will be accessible.
+
+```JS
+var websocketPath = matchJSON.websocketPath;
+stompClient.subscribe(websocketPath, onMessageReceived);
+```
+
+## Screens
+
+### OAuth2 token generation
+
+![GET_ACCESS_TOKEN](https://github.com/Echelon133/SportEvents/blob/docs/screens/Oauth2/1GET_ACCESS_TOKEN.png)
+![SAVE_TOKEN](https://github.com/Echelon133/SportEvents/blob/docs/screens/Oauth2/2SAVE_ACCESS_TOKEN.png)
+
+### Example use of /api/stadiums
+
+![GET_EMPTY](https://github.com/Echelon133/SportEvents/blob/docs/screens/Stadium/1GET_EMPTY_STADIUM_RESOURCE.png)
+![CREATE_STADIUM](https://github.com/Echelon133/SportEvents/blob/docs/screens/Stadium/2CREATE_STADIUM_RESOURCE.png)
+![GET_RESOURCE](https://github.com/Echelon133/SportEvents/blob/docs/screens/Stadium/3GET_STADIUM_RESOURCE.png)
+![GET_404](https://github.com/Echelon133/SportEvents/blob/docs/screens/Stadium/4GET_NON_EXISTENT_STADIUM.png)
+![PUT_RESOURCE](https://github.com/Echelon133/SportEvents/blob/docs/screens/Stadium/5REPLACE_STADIUM_RESOURCE.png)
+![GET_RESOURCES](https://github.com/Echelon133/SportEvents/blob/docs/screens/Stadium/6GET_ALL_STADIUM_RESOURCES.png)
+![DELETE_RESOURCE](https://github.com/Echelon133/SportEvents/blob/docs/screens/Stadium/7DELETE_STADIUM_RESOURCE.png)
+![GET_AFTER_DELETION](https://github.com/Echelon133/SportEvents/blob/docs/screens/Stadium/8GET_ALL_STADIUM_RESOURCES_AFTER_DELETION.png)
+
+### Example use of /api/leagues
+
+![GET_EMPTY](https://github.com/Echelon133/SportEvents/blob/docs/screens/League/1GET_EMPTY_LEAGUE_RESOURCE.png)
+![GET_404](https://github.com/Echelon133/SportEvents/blob/docs/screens/League/2GET_NON_EXISTENT_LEAGUE_RESOURCE.png)
+![CREATE_LEAGUE](https://github.com/Echelon133/SportEvents/blob/docs/screens/League/3CREATE_LEAGUE_RESOURCE.png)
+![GET_RESOURCES](https://github.com/Echelon133/SportEvents/blob/docs/screens/League/4GET_ALL_LEAGUE_RESOURCES.png)
+![DELETE_RESOURCE](https://github.com/Echelon133/SportEvents/blob/docs/screens/League/5DELETE_LEAGUE_RESOURCE.png)
+![GET_AFTER_DELETION](https://github.com/Echelon133/SportEvents/blob/docs/screens/League/6GET_ALL_LEAGUE_RESOURCES.png)
+##### When creating a team that belongs to a specific league, the league receives a reference to the new team. With the request shown below we can list all teams that belong to a certain league.
+![GET_LEAGUE_TEAMS](https://github.com/Echelon133/SportEvents/blob/docs/screens/League/7GET_LEAGUE_TEAMS.png)
+
+### Example use of /api/teams
+
+![GET_EMPTY](https://github.com/Echelon133/SportEvents/blob/docs/screens/Team/1GET_EMPTY_TEAM_RESOURCE.png)
+![GET_404](https://github.com/Echelon133/SportEvents/blob/docs/screens/Team/2GET_NON_EXISTENT_TEAM_RESOURCE.png)
+![CREATE_TEAM](https://github.com/Echelon133/SportEvents/blob/docs/screens/Team/3CREATE_TEAM.png)
+![GET_RESOURCES](https://github.com/Echelon133/SportEvents/blob/docs/screens/Team/4GET_ALL_TEAM_RESOURCES.png)
+![DELETE_RESOURCE](https://github.com/Echelon133/SportEvents/blob/docs/screens/Team/5DELETE_TEAM_RESOURCE.png)
+![FILTER_RESOURCES](https://github.com/Echelon133/SportEvents/blob/docs/screens/Team/6FILTER_TEAM_BY_NAME_CONTAINS.png)
+
+### Example use of /api/matches
+
+![GET_EMPTY](https://github.com/Echelon133/SportEvents/blob/docs/screens/Match/1GET_EMPTY_MATCHES.png)
+![GET_404](https://github.com/Echelon133/SportEvents/blob/docs/screens/Match/2GET_404.png)
+![CREATE_MATCH](https://github.com/Echelon133/SportEvents/blob/docs/screens/Match/3CREATE_MATCH_RESOURCE.png)
+![MATCH_VALIDATION](https://github.com/Echelon133/SportEvents/blob/docs/screens/Match/4MATCH_TEAM_ID_VALIDATION.png)
+![REPLACE_MATCH](https://github.com/Echelon133/SportEvents/blob/docs/screens/Match/5REPLACE_MATCH_RESOURCE.png)
+![FILTER_BY_STATUS](https://github.com/Echelon133/SportEvents/blob/docs/screens/Match/6GET_FILTERED_RESOURCES.png)
+![DELETE_RESOURCE](https://github.com/Echelon133/SportEvents/blob/docs/screens/Match/7DELETE_MATCH_RESOURCE.png)
+
+### Example use of /api/matches/{matchId}/events
+
+![GET_EMPTY](https://github.com/Echelon133/SportEvents/blob/docs/screens/Event/1GET_EMPTY.png)
+![SEND_EVENT](https://github.com/Echelon133/SportEvents/blob/docs/screens/Event/2SEND_EVENT.png)
+![START_FIRST_HALF](https://github.com/Echelon133/SportEvents/blob/docs/screens/Event/3SEND_START_FIRST_HALF_EVENT.png)
+![CHANGED_STATUS](https://github.com/Echelon133/SportEvents/blob/docs/screens/Event/4EVENT_CHANGED_MATCH_STATUS.png)
+![SEND_GOAL_EVENT](https://github.com/Echelon133/SportEvents/blob/docs/screens/Event/5SEND_GOAL_EVENT.png)
+![GOAL_EVENT_RESULT](https://github.com/Echelon133/SportEvents/blob/docs/screens/Event/6GOAL_EVENT_RESULT.png)
+![FINISH_FIRST_HALF](https://github.com/Echelon133/SportEvents/blob/docs/screens/Event/7SEND_FINISH_FIRST_HALF_EVENT.png)
+![BREAK_TIME](https://github.com/Echelon133/SportEvents/blob/docs/screens/Event/8EVENT_SETS_BREAK_TIME_STATUS.png)
+![GET_ALL_EVENTS](https://github.com/Echelon133/SportEvents/blob/docs/screens/Event/9GET_ALL_EVENTS.png)
