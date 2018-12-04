@@ -9,6 +9,7 @@ import org.mockito.junit.MockitoJUnitRunner;
 
 import java.util.Optional;
 
+import static ml.echelon133.sportevents.TestUtils.buildLeague;
 import static org.assertj.core.api.AssertionsForClassTypes.assertThat;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.BDDMockito.given;
@@ -36,7 +37,7 @@ public class LeagueServiceTest {
         LeagueDto leagueDto = new LeagueDto("Test league", "England");
 
         // Expected object
-        League league = new League("Test league", "England");
+        League league = buildLeague(null, "Test league", "England");
 
         // When
         League convertedLeague = leagueService.convertDtoToEntity(leagueDto);

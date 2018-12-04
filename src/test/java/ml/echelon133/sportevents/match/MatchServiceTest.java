@@ -139,16 +139,11 @@ public class MatchServiceTest {
 
     @Test
     public void convertDtoToEntityConvertsAllFieldsCorrectly() throws Exception {
-        League league = new League("Test league", "Test country");
-        league.setId(5L);
+        League league = buildLeague(5L, "Test league", "Test country");
+        Stadium stadium = buildStadium(10L, "Stadium name", "Stadium city", 0);
 
-        Stadium stadium = new Stadium("Stadium name", "Stadium city");
-        stadium.setId(10L);
-
-        Team team1 = new Team("Team1", league);
-        Team team2 = new Team("Team2", league);
-        team1.setId(1L);
-        team2.setId(2L);
+        Team team1 = buildTeam(1L, "Team1", league);
+        Team team2 = buildTeam(2L, "Team2", league);
 
         MatchDto matchDto = new MatchDto("2020-01-01 20:00", 1L, 2L, 5L, 10L);
 
