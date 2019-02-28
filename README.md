@@ -10,7 +10,7 @@ Application features:
 * OAuth2 authentication system (tokens provided by github)
 * Validation of user-provided data
 * CRUD operations on all resources (stadiums, teams, matches, leagues)
-* Live listening to match events thanks to websockets 
+* Live listening to match events through websockets 
 
 # Documentation
 
@@ -245,7 +245,7 @@ This makes it possible to keep scores such as ex. "2:2 (3:1)"
 
 To be able to listen to match events over a STOMP endpoint, the client has to connect to **/sport-events**.
 There is no need to authenticate when connecting to this endpoint. The application does not accept any messages sent in.
-Every client can connect to this endpoint, regardless its origin (CORS set to allow all).
+Every client can connect to this endpoint, regardless of its origin (CORS set to allow all).
 
 Example code of a client app, that uses SockJS and Stomp:
 ```JS
